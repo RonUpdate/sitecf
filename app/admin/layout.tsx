@@ -5,7 +5,7 @@ import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import type { Database } from "@/types/supabase"
 import AdminAuthCheck from "@/components/admin-auth-check"
 
-export const dynamic = "force-dynamic"
+export const dynamic = "force_dynamic"
 
 export default async function AdminLayout({
   children,
@@ -21,7 +21,14 @@ export default async function AdminLayout({
 
   // Если нет сессии, вернем компонент, который выполнит клиентское перенаправление
   if (!session) {
-    return <AdminAuthCheck isAuthenticated={false} />
+    return (
+      <div className="flex min-h-screen">
+        <div className="w-64 border-r bg-gray-50 dark:bg-gray-900 dark:border-gray-800 h-screen"></div>
+        <div className="flex-1 p-6 lg:p-8">
+          <AdminAuthCheck isAuthenticated={false} />
+        </div>
+      </div>
+    )
   }
 
   // Проверяем, является ли пользователь администратором
@@ -33,7 +40,14 @@ export default async function AdminLayout({
 
   // Если пользователь не админ, вернем компонент, который выполнит клиентское перенаправление
   if (error || !adminUser) {
-    return <AdminAuthCheck isAuthenticated={true} isAdmin={false} />
+    return (
+      <div className="flex min-h-screen">
+        <div className="w-64 border-r bg-gray-50 dark:bg-gray-900 dark:border-gray-800 h-screen"></div>
+        <div className="flex-1 p-6 lg:p-8">
+          <AdminAuthCheck isAuthenticated={true} isAdmin={false} />
+        </div>
+      </div>
+    )
   }
 
   return (

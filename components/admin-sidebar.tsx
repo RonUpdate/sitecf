@@ -43,8 +43,11 @@ export function AdminSidebar() {
         if (data.user) {
           setUserEmail(data.user.email)
         } else {
-          // Если пользователь не авторизован, перенаправляем на страницу входа
-          router.push("/login")
+          // Only redirect if we're sure the user isn't authenticated
+          // and we're not already loading
+          if (!loading) {
+            router.push("/login")
+          }
         }
       } catch (error) {
         console.error("Error getting user:", error)
@@ -53,6 +56,8 @@ export function AdminSidebar() {
         setLoading(false)
       }
     }
+
+    getUser()
 
     // Устанавливаем слушатель изменения состояния авторизации
     const {
@@ -66,8 +71,6 @@ export function AdminSidebar() {
         router.push("/")
       }
     })
-
-    getUser()
 
     // Очищаем подписку при размонтировании компонента
     return () => {

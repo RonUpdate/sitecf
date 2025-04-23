@@ -37,16 +37,14 @@ export default async function Home() {
 
   return (
     <>
-      <section className="py-12 md:py-20 bg-gradient-to-b from-accent to-background">
-        <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center">
-            <div className="inline-block p-2 bg-primary/10 rounded-full mb-4">
-              <Palette className="w-8 h-8 md:w-10 md:h-10 text-primary" />
-            </div>
-            <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl">
-              Beautiful Coloring Pages for Everyone
-            </h1>
+      <section className="w-full py-12 md:py-20 bg-gradient-to-b from-accent to-background">
+        <div className="w-full flex flex-col items-center justify-center space-y-4 text-center">
+          <div className="inline-block p-2 bg-primary/10 rounded-full mb-4">
+            <Palette className="w-8 h-8 md:w-10 md:h-10 text-primary" />
           </div>
+          <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl">
+            Beautiful Coloring Pages for Everyone
+          </h1>
         </div>
       </section>
 
@@ -80,6 +78,7 @@ export default async function Home() {
                           page.thumbnail_url ||
                           page.image_url ||
                           "/placeholder.svg?height=256&width=256&query=coloring+page" ||
+                          "/placeholder.svg" ||
                           "/placeholder.svg" ||
                           "/placeholder.svg" ||
                           "/placeholder.svg" ||

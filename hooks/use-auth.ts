@@ -46,12 +46,14 @@ export function useAuth() {
 export function useRequireAuth() {
   const { user, loading } = useAuth()
   const router = useRouter()
+  const [redirected, setRedirected] = useState(false)
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user && !redirected) {
+      setRedirected(true)
       router.push("/unauthorized")
     }
-  }, [user, loading, router])
+  }, [user, loading, router, redirected])
 
   return { user, loading }
 }
@@ -62,6 +64,7 @@ export function useAdminStatus() {
   const [checkingAdmin, setCheckingAdmin] = useState(true)
   const supabase = createClientComponentClient<Database>()
   const router = useRouter()
+  const [redirected, setRedirected] = useState(false)
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -87,10 +90,11 @@ export function useAdminStatus() {
   }, [user, loading, supabase])
 
   useEffect(() => {
-    if (!loading && !checkingAdmin && !isAdmin) {
+    if (!loading && !checkingAdmin && !isAdmin && !redirected) {
+      setRedirected(true)
       router.push("/forbidden")
     }
-  }, [isAdmin, loading, checkingAdmin, router])
+  }, [isAdmin, loading, checkingAdmin, router, redirected])
 
   return { user, isAdmin, loading: loading || checkingAdmin }
 }
