@@ -22,7 +22,7 @@ export default function PublicLayout({
             <Suspense fallback={null}>
               <SearchForm className="max-w-xs" />
             </Suspense>
-            <Link href="/categories">
+            <Link href="/featured">
               <Button variant="ghost">Coloring Pages</Button>
             </Link>
             <Link href="/blog">

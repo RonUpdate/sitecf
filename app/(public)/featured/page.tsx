@@ -4,6 +4,8 @@ import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
 
+export const dynamic = "force-dynamic"
+
 export default async function FeaturedPage() {
   const supabase = await createServerSupabaseClient()
 
@@ -34,7 +36,7 @@ export default async function FeaturedPage() {
       </Link>
 
       <div className="flex flex-col items-center justify-center mb-12">
-        <h1 className="text-3xl font-bold tracking-tighter mb-4">Featured Coloring Pages</h1>
+        <h1 className="text-3xl font-bold tracking-tighter mb-4">Coloring Pages</h1>
         <p className="text-gray-500 dark:text-gray-400 text-center max-w-[700px]">
           Our hand-picked selection of the most beautiful and popular coloring pages
         </p>
@@ -51,6 +53,7 @@ export default async function FeaturedPage() {
                       page.thumbnail_url ||
                       page.image_url ||
                       "/placeholder.svg?height=256&width=256&query=coloring+page" ||
+                      "/placeholder.svg" ||
                       "/placeholder.svg" ||
                       "/placeholder.svg"
                     }
@@ -83,7 +86,7 @@ export default async function FeaturedPage() {
         </div>
       ) : (
         <div className="text-center py-12 border rounded-lg">
-          <p className="text-gray-500 dark:text-gray-400">No featured coloring pages found.</p>
+          <p className="text-gray-500 dark:text-gray-400">No coloring pages found.</p>
         </div>
       )}
     </div>

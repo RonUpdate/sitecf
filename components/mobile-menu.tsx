@@ -29,7 +29,7 @@ export function MobileMenu() {
             </Button>
           </div>
           <nav className="flex flex-col gap-4">
-            <Link href="/categories" onClick={() => setOpen(false)}>
+            <Link href="/featured" onClick={() => setOpen(false)}>
               <Button variant="ghost" className="w-full justify-start">
                 Coloring Pages
               </Button>

@@ -50,11 +50,6 @@ export default function LoginPage() {
     }
   }
 
-  // For development purposes, let's add a bypass button
-  const handleBypass = () => {
-    router.push("/admin")
-  }
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <Card className="w-full max-w-md">
@@ -90,11 +85,6 @@ export default function LoginPage() {
           <CardFooter className="flex flex-col gap-2">
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Signing in..." : "Sign In"}
-            </Button>
-
-            {/* Development bypass button */}
-            <Button type="button" variant="outline" className="w-full" onClick={handleBypass}>
-              Enter Admin Panel (Development Only)
             </Button>
           </CardFooter>
         </form>
