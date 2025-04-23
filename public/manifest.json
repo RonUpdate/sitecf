@@ -1,0 +1,23 @@
+{
+  "name": "Art Market - Beautiful Coloring Pages",
+  "short_name": "Art Market",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "theme_color": "#9333ea",
+  "background_color": "#f5f3ff",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait"
+}
