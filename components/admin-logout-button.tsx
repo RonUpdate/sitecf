@@ -13,16 +13,14 @@ export default function AdminLogoutButton() {
   const handleLogout = async () => {
     try {
       setIsLoading(true)
-      const supabase = createClientComponentClient()
 
-      // Perform logout directly using the client
+      // Use direct Supabase client for client-side logout
+      const supabase = createClientComponentClient()
       await supabase.auth.signOut()
 
-      // Redirect after a short delay
-      setTimeout(() => {
-        router.push("/")
-        router.refresh()
-      }, 500)
+      // Redirect after logout
+      router.push("/")
+      router.refresh()
     } catch (error) {
       console.error("Logout error:", error)
       setIsLoading(false)

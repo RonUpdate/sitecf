@@ -14,23 +14,16 @@ export default function LogoutPage() {
   useEffect(() => {
     const handleLogout = async () => {
       try {
-        setIsLoading(true)
+        // Use direct Supabase client for client-side logout
         const supabase = createClientComponentClient()
+        await supabase.auth.signOut()
 
-        // Perform logout
-        const { error } = await supabase.auth.signOut()
-
-        if (error) {
-          throw new Error(error.message)
-        }
-
-        // Redirect after a short delay to ensure cookies are cleared
-        setTimeout(() => {
-          router.push("/")
-          router.refresh()
-        }, 500)
+        // Redirect after logout
+        router.push("/")
+        router.refresh()
       } catch (err: any) {
-        setError(err.message || "An error occurred during logout")
+        console.error("Logout error:", err)
+        setError("An error occurred during logout")
         setIsLoading(false)
       }
     }

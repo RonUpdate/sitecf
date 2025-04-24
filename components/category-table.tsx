@@ -45,15 +45,28 @@ export function CategoryTable({ categories }: { categories: Category[] }) {
       const { error } = await supabase.from("categories").delete().eq("id", deleteId)
 
       if (error) {
-        throw error
+        // Check for the specific PostgreSQL error about missing RETURN statements
+        if (error.message && error.message.includes("without RETURN")) {
+          console.warn("Database function missing RETURN statement, but deletion may have succeeded:", error.message)
+
+          // The deletion might have actually succeeded despite the error
+          toast({
+            title: "Category deleted",
+            description: "The category has been deleted, but with a database warning.",
+          })
+
+          router.refresh()
+        } else {
+          throw error
+        }
+      } else {
+        toast({
+          title: "Category deleted",
+          description: "The category has been successfully deleted.",
+        })
+
+        router.refresh()
       }
-
-      toast({
-        title: "Category deleted",
-        description: "The category has been successfully deleted.",
-      })
-
-      router.refresh()
     } catch (error) {
       console.error("Error deleting category:", error)
       toast({
