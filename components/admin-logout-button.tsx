@@ -1,40 +1,30 @@
 "use client"
 
-import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { LogOut } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { LogOut } from "lucide-react"
 
-export default function AdminLogoutButton() {
+interface AdminLogoutButtonProps {
+  className?: string
+}
+
+export function AdminLogoutButton({ className }: AdminLogoutButtonProps) {
   const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
 
   const handleLogout = async () => {
     try {
-      setIsLoading(true)
-
-      // Use direct Supabase client for client-side logout
       const supabase = createClientComponentClient()
       await supabase.auth.signOut()
-
-      // Redirect after logout
       router.push("/")
-      router.refresh()
     } catch (error) {
-      console.error("Logout error:", error)
-      setIsLoading(false)
+      console.error("Error logging out:", error)
     }
   }
 
   return (
-    <Button variant="ghost" size="sm" onClick={handleLogout} disabled={isLoading} className="flex items-center gap-2">
-      {isLoading ? (
-        <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-      ) : (
-        <LogOut className="h-4 w-4" />
-      )}
-      <span>Выйти</span>
-    </Button>
+    <button onClick={handleLogout} className={className}>
+      <LogOut className="h-5 w-5" />
+      <span className="ml-3">Выйти</span>
+    </button>
   )
 }
