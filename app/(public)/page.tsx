@@ -34,9 +34,9 @@ export default async function Home() {
       <section className="py-16 bg-background">
         <div className="container px-4 md:px-6 mx-auto">
           <div className="flex flex-col items-center justify-center mb-12">
-            <h2 className="text-3xl font-bold tracking-tighter mb-4">Our Products</h2>
+            <h2 className="text-3xl font-bold tracking-tighter mb-4">Our Coloring Pages</h2>
             <p className="text-gray-500 dark:text-gray-400 text-center max-w-[700px]">
-              Discover our collection of high-quality products
+              Discover our collection of high-quality coloring pages
             </p>
           </div>
 
@@ -45,9 +45,9 @@ export default async function Home() {
           </div>
 
           <div className="flex justify-center mt-12">
-            <Link href="/products">
+            <Link href="/featured">
               <Button variant="outline" size="lg">
-                View All Products
+                View All Coloring Pages
               </Button>
             </Link>
           </div>

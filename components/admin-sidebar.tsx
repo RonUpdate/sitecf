@@ -1,65 +1,137 @@
 "use client"
 
+import type React from "react"
+
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { cn } from "@/lib/utils"
 import {
-  LayoutDashboard,
+  BarChart3,
   FileText,
-  Tag,
+  Home,
+  ImageIcon,
+  LayoutDashboard,
   Package,
   Settings,
+  Tag,
+  Trash2,
   Users,
-  ImageIcon,
-  BookOpen,
-  FileCode,
-  AlertCircle,
 } from "lucide-react"
-import { AdminLogoutButton } from "./admin-logout-button"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Separator } from "@/components/ui/separator"
+import { AdminLogoutButton } from "@/components/admin-logout-button"
 
-export function AdminSidebar() {
+interface SidebarNavProps extends React.HTMLAttributes<HTMLDivElement> {}
+
+export function AdminSidebar({ className }: SidebarNavProps) {
   const pathname = usePathname()
 
-  const isActive = (path: string) => {
-    return pathname === path || pathname.startsWith(`${path}/`)
-  }
+  const navItems = [
+    {
+      title: "Панель управления",
+      href: "/admin",
+      icon: <LayoutDashboard className="mr-2 h-4 w-4" />,
+    },
+    {
+      title: "Товары",
+      href: "/admin/products",
+      icon: <Package className="mr-2 h-4 w-4" />,
+    },
+    {
+      title: "Категории",
+      href: "/admin/categories",
+      icon: <Tag className="mr-2 h-4 w-4" />,
+    },
+    {
+      title: "Раскраски",
+      href: "/admin/coloring-pages",
+      icon: <ImageIcon className="mr-2 h-4 w-4" />,
+    },
+    {
+      title: "Блог",
+      href: "/admin/blog",
+      icon: <FileText className="mr-2 h-4 w-4" />,
+    },
+    {
+      title: "Пользователи",
+      href: "/admin/users",
+      icon: <Users className="mr-2 h-4 w-4" />,
+    },
+    {
+      title: "Аналитика",
+      href: "/admin/analytics",
+      icon: <BarChart3 className="mr-2 h-4 w-4" />,
+    },
+  ]
 
-  const menuItems = [
-    { name: "Панель управления", path: "/admin", icon: <LayoutDashboard className="h-5 w-5" /> },
-    { name: "Категории", path: "/admin/categories", icon: <Tag className="h-5 w-5" /> },
-    { name: "Продукты", path: "/admin/products", icon: <Package className="h-5 w-5" /> },
-    { name: "Раскраски", path: "/admin/coloring-pages", icon: <ImageIcon className="h-5 w-5" /> },
-    { name: "Блог", path: "/admin/blog", icon: <BookOpen className="h-5 w-5" /> },
-    { name: "Категории блога", path: "/admin/blog/categories", icon: <FileText className="h-5 w-5" /> },
-    { name: "Теги блога", path: "/admin/blog/tags", icon: <Tag className="h-5 w-5" /> },
-    { name: "Пользователи", path: "/admin/users", icon: <Users className="h-5 w-5" /> },
-    { name: "Профиль", path: "/admin/profile", icon: <Settings className="h-5 w-5" /> },
-    { name: "Логи аутентификации", path: "/admin/auth-logs", icon: <FileCode className="h-5 w-5" /> },
-    { name: "Отладка", path: "/admin/debug", icon: <AlertCircle className="h-5 w-5" /> },
+  const utilityItems = [
+    {
+      title: "Очистка данных",
+      href: "/admin/data-cleanup",
+      icon: <Trash2 className="mr-2 h-4 w-4" />,
+    },
+    {
+      title: "Настройки",
+      href: "/admin/settings",
+      icon: <Settings className="mr-2 h-4 w-4" />,
+    },
+    {
+      title: "Просмотр сайта",
+      href: "/",
+      icon: <Home className="mr-2 h-4 w-4" />,
+      external: true,
+    },
   ]
 
   return (
-    <div className="w-64 bg-gray-800 text-white min-h-screen p-4">
-      <div className="text-xl font-bold mb-6 pb-4 border-b border-gray-700">Админ-панель</div>
-      <nav>
-        <ul className="space-y-2">
-          {menuItems.map((item) => (
-            <li key={item.path}>
+    <div className={cn("pb-12", className)}>
+      <div className="space-y-4 py-4">
+        <div className="px-4 py-2">
+          <h2 className="mb-2 px-2 text-xl font-semibold tracking-tight">Админ-панель</h2>
+          <div className="space-y-1">
+            {navItems.map((item) => (
               <Link
-                href={item.path}
-                className={`flex items-center p-2 rounded-md transition-colors ${
-                  isActive(item.path) ? "bg-gray-700 text-white" : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                }`}
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
+                  pathname === item.href ? "bg-accent text-accent-foreground" : "transparent",
+                )}
               >
                 {item.icon}
-                <span className="ml-3">{item.name}</span>
+                {item.title}
               </Link>
-            </li>
-          ))}
-          <li className="pt-4 mt-4 border-t border-gray-700">
-            <AdminLogoutButton className="flex items-center p-2 text-gray-300 hover:bg-gray-700 hover:text-white rounded-md transition-colors w-full" />
-          </li>
-        </ul>
-      </nav>
+            ))}
+          </div>
+        </div>
+        <Separator />
+        <div className="px-4 py-2">
+          <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">Утилиты</h2>
+          <ScrollArea className="h-[300px]">
+            <div className="space-y-1">
+              {utilityItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  target={item.external ? "_blank" : undefined}
+                  rel={item.external ? "noopener noreferrer" : undefined}
+                  className={cn(
+                    "flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
+                    pathname === item.href ? "bg-accent text-accent-foreground" : "transparent",
+                  )}
+                >
+                  {item.icon}
+                  {item.title}
+                </Link>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
+        <Separator />
+        <div className="px-4 py-2">
+          <AdminLogoutButton />
+        </div>
+      </div>
     </div>
   )
 }
