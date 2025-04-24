@@ -4,21 +4,25 @@ import { redirect } from "next/navigation"
 import type { Database } from "@/types/supabase"
 
 export async function requireAuth() {
-  const cookieStore = cookies()
-  const supabase = createServerComponentClient<Database>({ cookies: () => cookieStore })
+  try {
+    const cookieStore = cookies()
+    const supabase = createServerComponentClient<Database>({ cookies: () => cookieStore })
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
 
-  if (!session) {
-    redirect("/login")
+    if (!session) {
+      redirect("/login")
+    }
+
+    return session
+  } catch (error) {
+    console.error("Auth error:", error)
+    redirect("/error")
   }
-
-  return session
 }
 
-// Add back the requireAdmin function
 export async function requireAdmin() {
   try {
     const cookieStore = cookies()
@@ -65,7 +69,6 @@ export async function isAdmin(email: string): Promise<boolean> {
   }
 }
 
-// Add the other required functions back
 export async function requireRole(allowedRoles: string[]) {
   try {
     const session = await requireAuth()
