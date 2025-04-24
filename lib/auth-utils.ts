@@ -95,3 +95,16 @@ export async function requireResourceOwner(resourceTable: string, resourceId: st
     redirect("/error")
   }
 }
+
+// Проверка, является ли пользователь администратором
+export async function isAdmin(userEmail: string): Promise<boolean> {
+  try {
+    const supabase = createServerComponentClient<Database>({ cookies })
+    const { data: adminUser } = await supabase.from("admin_users").select("*").eq("email", userEmail).single()
+
+    return !!adminUser
+  } catch (error) {
+    console.error("Error checking admin status:", error)
+    return false
+  }
+}

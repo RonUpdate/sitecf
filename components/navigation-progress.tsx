@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
 import { cn } from "@/lib/utils"
 
@@ -9,42 +9,62 @@ export function NavigationProgress() {
   const searchParams = useSearchParams()
   const [isNavigating, setIsNavigating] = useState(false)
   const [progress, setProgress] = useState(0)
-  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null)
+  const timeoutRef = useRef<{
+    progress1?: NodeJS.Timeout
+    progress2?: NodeJS.Timeout
+    reset?: NodeJS.Timeout
+  }>({})
+
+  // Track previous path to avoid unnecessary animations
+  const prevPathRef = useRef<string>("")
+  const currentPath = pathname + searchParams.toString()
 
   useEffect(() => {
-    // Reset state when the component mounts
-    setIsNavigating(false)
-    setProgress(0)
-
-    // Clean up any existing timeout
-    if (timeoutId) {
-      clearTimeout(timeoutId)
+    // Clean up function to clear all timeouts
+    return () => {
+      if (timeoutRef.current.progress1) clearTimeout(timeoutRef.current.progress1)
+      if (timeoutRef.current.progress2) clearTimeout(timeoutRef.current.progress2)
+      if (timeoutRef.current.reset) clearTimeout(timeoutRef.current.reset)
     }
   }, [])
 
   useEffect(() => {
-    // Start progress when navigation begins
+    // Skip animation on initial render
+    if (prevPathRef.current === "") {
+      prevPathRef.current = currentPath
+      return
+    }
+
+    // Skip if path hasn't changed
+    if (prevPathRef.current === currentPath) {
+      return
+    }
+
+    // Update previous path
+    prevPathRef.current = currentPath
+
+    // Clear any existing timeouts
+    if (timeoutRef.current.progress1) clearTimeout(timeoutRef.current.progress1)
+    if (timeoutRef.current.progress2) clearTimeout(timeoutRef.current.progress2)
+    if (timeoutRef.current.reset) clearTimeout(timeoutRef.current.reset)
+
+    // Start progress animation
     setIsNavigating(true)
     setProgress(20)
 
-    const id1 = setTimeout(() => setProgress(60), 100)
-    const id2 = setTimeout(() => {
+    timeoutRef.current.progress1 = setTimeout(() => {
+      setProgress(60)
+    }, 100)
+
+    timeoutRef.current.progress2 = setTimeout(() => {
       setProgress(100)
-      const id3 = setTimeout(() => {
+
+      timeoutRef.current.reset = setTimeout(() => {
         setIsNavigating(false)
         setProgress(0)
       }, 200)
-      setTimeoutId(id3)
     }, 300)
-
-    setTimeoutId(id2)
-
-    return () => {
-      clearTimeout(id1)
-      clearTimeout(id2)
-      if (timeoutId) clearTimeout(timeoutId)
-    }
-  }, [pathname, searchParams])
+  }, [pathname, searchParams, currentPath])
 
   return (
     <div

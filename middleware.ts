@@ -19,20 +19,25 @@ export async function middleware(req: NextRequest) {
     return res
   }
 
-  // Получаем сессию пользователя
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  try {
+    // Получаем сессию пользователя
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
 
-  // Если пытаемся получить доступ к админке без сессии
-  if (isAdminPath && !session) {
-    const redirectUrl = new URL("/login", req.url)
-    return NextResponse.redirect(redirectUrl)
-  }
+    // Если пытаемся получить доступ к админке без сессии
+    if (isAdminPath && !session) {
+      const redirectUrl = new URL("/login", req.url)
+      redirectUrl.searchParams.set("from", path)
+      return NextResponse.redirect(redirectUrl)
+    }
 
-  // Если уже авторизованы и пытаемся получить доступ к странице входа
-  if (isLoginPath && session) {
-    return NextResponse.redirect(new URL("/admin", req.url))
+    // Если уже авторизованы и пытаемся получить доступ к странице входа
+    if (isLoginPath && session) {
+      return NextResponse.redirect(new URL("/admin", req.url))
+    }
+  } catch (error) {
+    console.error("Middleware error:", error)
   }
 
   return res

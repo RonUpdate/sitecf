@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import type { Database } from "@/types/supabase"
 import useSWR from "swr"
+import logger from "@/lib/logger"
 
 // Create a singleton Supabase client
 const getSupabaseClient = (() => {
@@ -79,7 +80,9 @@ export function useAuthSWR() {
         mutate()
       } else if (event === "SIGNED_OUT") {
         mutate(null, false)
-        router.push("/login")
+        // Используем абсолютный URL для перенаправления
+        const baseUrl = window.location.origin
+        window.location.replace(baseUrl + "/")
       }
     })
 
@@ -89,8 +92,28 @@ export function useAuthSWR() {
   }, [mutate, router, supabase])
 
   const signOut = async () => {
-    await supabase.auth.signOut()
-    mutate(null, false)
+    try {
+      logger.auth.info("Начало процесса выхода из системы через useAuthSWR")
+
+      // Выполняем выход на клиенте
+      const { error } = await supabase.auth.signOut()
+
+      if (error) {
+        throw error
+      }
+
+      logger.auth.info("Успешный выход на клиенте, перенаправление на главную страницу")
+
+      // Обновляем состояние SWR
+      mutate(null, false)
+
+      // Используем абсолютный URL для перенаправления
+      const baseUrl = window.location.origin
+      window.location.replace(baseUrl + "/")
+    } catch (error: any) {
+      logger.auth.error("Ошибка при выходе из системы", { error: error.message })
+      console.error("Ошибка при выходе из системы:", error)
+    }
   }
 
   return {

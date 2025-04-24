@@ -2,120 +2,70 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useSupabaseQuery } from "@/hooks/use-swr-fetch"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import type { Database } from "@/types/supabase"
-
-type AdminUser = {
-  id: string
-  email: string
-  name?: string
-}
+import {
+  LayoutDashboard,
+  FileText,
+  Tag,
+  Package,
+  Settings,
+  LogOut,
+  Users,
+  ImageIcon,
+  BookOpen,
+  FileCode,
+  AlertCircle,
+} from "lucide-react"
 
 export function AdminSidebar() {
   const pathname = usePathname()
-  const supabase = createClientComponentClient<Database>()
 
-  // Use SWR to fetch admin user data
-  const {
-    data: adminUser,
-    error,
-    isLoading,
-  } = useSupabaseQuery<AdminUser>(
-    async (supabase) => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      if (!user) return { data: null, error: new Error("User not found") }
-
-      return supabase.from("admin_users").select("*").eq("email", user.email).single()
-    },
-    "admin-user-profile",
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 60000, // 1 minute
-    },
-  )
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    window.location.href = "/login"
+  const isActive = (path: string) => {
+    return pathname === path || pathname.startsWith(`${path}/`)
   }
 
+  const menuItems = [
+    { name: "Панель управления", path: "/admin", icon: <LayoutDashboard className="h-5 w-5" /> },
+    { name: "Категории", path: "/admin/categories", icon: <Tag className="h-5 w-5" /> },
+    { name: "Продукты", path: "/admin/products", icon: <Package className="h-5 w-5" /> },
+    { name: "Раскраски", path: "/admin/coloring-pages", icon: <ImageIcon className="h-5 w-5" /> },
+    { name: "Блог", path: "/admin/blog", icon: <BookOpen className="h-5 w-5" /> },
+    { name: "Категории блога", path: "/admin/blog/categories", icon: <FileText className="h-5 w-5" /> },
+    { name: "Теги блога", path: "/admin/blog/tags", icon: <Tag className="h-5 w-5" /> },
+    { name: "Пользователи", path: "/admin/users", icon: <Users className="h-5 w-5" /> },
+    { name: "Профиль", path: "/admin/profile", icon: <Settings className="h-5 w-5" /> },
+    { name: "Логи аутентификации", path: "/admin/auth-logs", icon: <FileCode className="h-5 w-5" /> },
+    { name: "Отладка", path: "/admin/debug", icon: <AlertCircle className="h-5 w-5" /> },
+  ]
+
   return (
-    <div className="w-64 border-r bg-gray-50 dark:bg-gray-900 dark:border-gray-800 h-screen overflow-y-auto">
-      <div className="p-6">
-        <h2 className="text-lg font-semibold mb-6">Admin Panel</h2>
-
-        {isLoading ? (
-          <div className="mb-6 animate-pulse">
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-          </div>
-        ) : error ? (
-          <div className="mb-6 text-sm text-red-500">Error loading profile</div>
-        ) : adminUser ? (
-          <div className="mb-6">
-            <p className="text-sm font-medium">{adminUser.name || adminUser.email}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Administrator</p>
-          </div>
-        ) : null}
-
-        <nav className="space-y-1">
-          <Link
-            href="/admin"
-            className={`block px-3 py-2 rounded-md text-sm ${
-              pathname === "/admin"
-                ? "bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white"
-                : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-            }`}
-          >
-            Dashboard
-          </Link>
-
-          <Link
-            href="/admin/categories"
-            className={`block px-3 py-2 rounded-md text-sm ${
-              pathname === "/admin/categories" || pathname.startsWith("/admin/categories/")
-                ? "bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white"
-                : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-            }`}
-          >
-            Categories
-          </Link>
-
-          <Link
-            href="/admin/coloring-pages"
-            className={`block px-3 py-2 rounded-md text-sm ${
-              pathname === "/admin/coloring-pages" || pathname.startsWith("/admin/coloring-pages/")
-                ? "bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white"
-                : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-            }`}
-          >
-            Coloring Pages
-          </Link>
-
-          <Link
-            href="/admin/blog"
-            className={`block px-3 py-2 rounded-md text-sm ${
-              pathname === "/admin/blog" || pathname.startsWith("/admin/blog/")
-                ? "bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white"
-                : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-            }`}
-          >
-            Blog
-          </Link>
-
-          <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
-            <button
-              onClick={handleSignOut}
-              className="block w-full text-left px-3 py-2 rounded-md text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+    <div className="w-64 bg-gray-800 text-white min-h-screen p-4">
+      <div className="text-xl font-bold mb-6 pb-4 border-b border-gray-700">Админ-панель</div>
+      <nav>
+        <ul className="space-y-2">
+          {menuItems.map((item) => (
+            <li key={item.path}>
+              <Link
+                href={item.path}
+                className={`flex items-center p-2 rounded-md transition-colors ${
+                  isActive(item.path) ? "bg-gray-700 text-white" : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                }`}
+              >
+                {item.icon}
+                <span className="ml-3">{item.name}</span>
+              </Link>
+            </li>
+          ))}
+          <li className="pt-4 mt-4 border-t border-gray-700">
+            <a
+              href="/api/auth/logout"
+              className="flex items-center p-2 text-gray-300 hover:bg-gray-700 hover:text-white rounded-md transition-colors"
             >
-              Sign Out
-            </button>
-          </div>
-        </nav>
-      </div>
+              <LogOut className="h-5 w-5" />
+              <span className="ml-3">Выйти</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
     </div>
   )
 }

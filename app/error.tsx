@@ -13,7 +13,8 @@ export default function Error({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error(error)
+    // Логируем ошибку в консоль для отладки
+    console.error("Ошибка в приложении:", error)
   }, [error])
 
   return (
@@ -42,6 +43,13 @@ export default function Error({
         {error.digest && (
           <div className="mt-8 text-sm text-gray-400">
             <p>Код ошибки: {error.digest}</p>
+          </div>
+        )}
+
+        {/* Отображаем сообщение об ошибке только в режиме разработки */}
+        {process.env.NODE_ENV === "development" && (
+          <div className="mt-4 p-4 bg-gray-100 rounded-md text-left">
+            <p className="font-mono text-sm text-red-600">{error.message}</p>
           </div>
         )}
       </div>
