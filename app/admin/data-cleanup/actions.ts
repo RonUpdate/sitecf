@@ -8,8 +8,8 @@ export async function deleteTestProducts() {
   try {
     const supabase = await createServerSupabaseClient()
 
-    // Удаляем все продукты
-    const { error } = await supabase.from("products").delete().neq("id", "0")
+    // Удаляем все продукты без исключений
+    const { error } = await supabase.from("products").delete()
 
     if (error) {
       logger.error("Ошибка при удалении продуктов", { error: error.message })
@@ -35,8 +35,8 @@ export async function deleteAllColoringPages() {
   try {
     const supabase = await createServerSupabaseClient()
 
-    // Удаляем все страницы раскрасок
-    const { error } = await supabase.from("coloring_pages").delete().neq("id", "0")
+    // Удаляем все страницы раскрасок без исключений
+    const { error } = await supabase.from("coloring_pages").delete()
 
     if (error) {
       logger.error("Ошибка при удалении страниц раскрасок", { error: error.message })
