@@ -27,6 +27,24 @@ export const getClientSession = async () => {
   }
 }
 
+// Client-side function to check if the user is authenticated
+export const requireClientAuth = async () => {
+  const session = await getClientSession()
+  return !!session
+}
+
+// Client-side function to get the current user
+export const getClientUser = async () => {
+  try {
+    const supabase = createClientComponentClient()
+    const { data } = await supabase.auth.getUser()
+    return data.user
+  } catch (error) {
+    console.error("Error getting current user:", error)
+    return null
+  }
+}
+
 // Server-side function to check if the user is authenticated
 export const requireAuth = cache(async () => {
   const session = await getServerSession()

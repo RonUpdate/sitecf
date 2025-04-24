@@ -1,5 +1,3 @@
-"use server"
-
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
@@ -63,5 +61,48 @@ export async function isAdmin(email: string): Promise<boolean> {
   } catch (error) {
     console.error("Error checking admin status:", error)
     return false
+  }
+}
+
+export async function requireRole(allowedRoles: string[]) {
+  try {
+    const session = await requireAuth()
+    const cookieStore = cookies()
+    const supabase = createServerComponentClient<Database>({ cookies: () => cookieStore })
+
+    // Get the user's role from Supabase
+    const { data: userRole, error } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", session.user.id)
+      .single()
+
+    if (error || !userRole || !allowedRoles.includes(userRole.role)) {
+      redirect("/forbidden")
+    }
+
+    return { session, role: userRole.role }
+  } catch (error) {
+    console.error("Role check error:", error)
+    redirect("/error")
+  }
+}
+
+export async function requireResourceOwner(resourceTable: string, resourceId: string) {
+  try {
+    const session = await requireAuth()
+    const cookieStore = cookies()
+    const supabase = createServerComponentClient<Database>({ cookies: () => cookieStore })
+
+    const { data: resource, error } = await supabase.from(resourceTable).select("user_id").eq("id", resourceId).single()
+
+    if (error || !resource || resource.user_id !== session.user.id) {
+      redirect("/forbidden")
+    }
+
+    return { session, resource }
+  } catch (error) {
+    console.error("Resource owner check error:", error)
+    redirect("/error")
   }
 }

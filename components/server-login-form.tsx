@@ -2,14 +2,13 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import logger from "@/lib/logger"
 
 export function ServerLoginForm({ from = "/admin" }: { from?: string }) {
   const [email, setEmail] = useState("")
@@ -17,32 +16,11 @@ export function ServerLoginForm({ from = "/admin" }: { from?: string }) {
   const [rememberMe, setRememberMe] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [supabaseInitialized, setSupabaseInitialized] = useState(false)
+  const [supabaseInitialized, setSupabaseInitialized] = useState(true)
   const router = useRouter()
 
   // Инициализируем Supabase клиент только один раз
   const supabase = createClientComponentClient()
-
-  // Проверяем инициализацию Supabase при монтировании компонента
-  useEffect(() => {
-    const checkSupabase = async () => {
-      try {
-        // Простой запрос для проверки соединения
-        const { error } = await supabase.auth.getSession()
-        if (error) {
-          logger.auth.error("Supabase initialization error", error)
-          setError("Ошибка инициализации системы аутентификации. Пожалуйста, обновите страницу.")
-        } else {
-          setSupabaseInitialized(true)
-        }
-      } catch (err) {
-        logger.auth.error("Supabase client error", err)
-        setError("Ошибка подключения к сервису аутентификации. Пожалуйста, проверьте соединение.")
-      }
-    }
-
-    checkSupabase()
-  }, [supabase.auth])
 
   const validateInputs = () => {
     if (!email || !email.includes("@")) {
@@ -74,7 +52,7 @@ export function ServerLoginForm({ from = "/admin" }: { from?: string }) {
     setLoading(true)
 
     try {
-      logger.auth.event("Login attempt", { email, rememberMe })
+      console.log("Login attempt", { email, rememberMe })
 
       // Определяем срок действия сессии в зависимости от выбора "Запомнить меня"
       const expiresIn = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 // 30 дней или 1 час
@@ -88,7 +66,7 @@ export function ServerLoginForm({ from = "/admin" }: { from?: string }) {
       })
 
       if (error) {
-        logger.auth.error("Login failed", { errorMessage: error.message, errorCode: error.code, email })
+        console.error("Login failed", { errorMessage: error.message, errorCode: error.code, email })
 
         // Обработка конкретных ошибок
         if (error.message.includes("Invalid login credentials")) {
@@ -104,13 +82,13 @@ export function ServerLoginForm({ from = "/admin" }: { from?: string }) {
       }
 
       if (!data || !data.session) {
-        logger.auth.error("No session data returned", { email })
+        console.error("No session data returned", { email })
         setError("Не удалось создать сессию. Пожалуйста, попробуйте еще раз.")
         setLoading(false)
         return
       }
 
-      logger.auth.event("Login successful", {
+      console.log("Login successful", {
         email,
         rememberMe,
         expiresIn,
@@ -126,7 +104,7 @@ export function ServerLoginForm({ from = "/admin" }: { from?: string }) {
         .single()
 
       if (adminError || !adminUser) {
-        logger.auth.error("Not an admin user", { email, adminError })
+        console.error("Not an admin user", { email, adminError })
 
         // Выходим из системы, так как пользователь не админ
         await supabase.auth.signOut()
@@ -137,10 +115,9 @@ export function ServerLoginForm({ from = "/admin" }: { from?: string }) {
       }
 
       // Перенаправляем на страницу, с которой пришли, или на админку
-      // Используем router.replace вместо router.push для полной замены URL
       router.replace(from)
     } catch (err: any) {
-      logger.auth.error("Unexpected login error", {
+      console.error("Unexpected login error", {
         error: err.message || "Unknown error",
         stack: err.stack,
         email,

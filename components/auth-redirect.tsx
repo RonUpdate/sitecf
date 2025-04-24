@@ -2,21 +2,26 @@
 
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import logger from "@/lib/logger"
 
 interface AuthRedirectProps {
   to: string
   reason?: string
 }
 
-export function AuthRedirect({ to, reason = "Unauthorized" }: AuthRedirectProps) {
+export function AuthRedirect({ to, reason }: AuthRedirectProps) {
   const router = useRouter()
 
   useEffect(() => {
-    logger.auth.info(`Client-side redirect to ${to}`, { reason })
+    console.log(`Redirecting to ${to}${reason ? ` (Reason: ${reason})` : ""}`)
     router.replace(to)
-  }, [to, router, reason])
+  }, [to, reason, router])
 
-  // Возвращаем пустой div вместо null, чтобы избежать проблем с рендерингом
-  return <div className="hidden"></div>
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+      <div className="text-center">
+        <h2 className="mb-2 text-xl font-semibold">Redirecting...</h2>
+        <p className="text-gray-500">You are being redirected to another page.</p>
+      </div>
+    </div>
+  )
 }
