@@ -10,6 +10,7 @@ export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname
 
   // Проверяем, относится ли путь к админке
+  const isAdminPath = path.startsWith("/admin")
   const isLoginPath = path === "/login"
   const isErrorPath = path === "/unauthorized" || path === "/forbidden" || path === "/error"
 
@@ -19,11 +20,18 @@ export async function middleware(req: NextRequest) {
   }
 
   // Получаем сессию пользователя
-  const { data } = await supabase.auth.getUser()
-  const hasSession = !!data.user
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  // Если пытаемся получить доступ к админке без сессии
+  if (isAdminPath && !session) {
+    const redirectUrl = new URL("/login", req.url)
+    return NextResponse.redirect(redirectUrl)
+  }
 
   // Если уже авторизованы и пытаемся получить доступ к странице входа
-  if (isLoginPath && hasSession) {
+  if (isLoginPath && session) {
     return NextResponse.redirect(new URL("/admin", req.url))
   }
 
@@ -31,5 +39,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/login", "/unauthorized", "/forbidden", "/error"],
+  matcher: ["/admin/:path*", "/login", "/unauthorized", "/forbidden", "/error"],
 }
