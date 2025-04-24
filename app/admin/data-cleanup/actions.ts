@@ -9,7 +9,7 @@ export async function deleteTestProducts() {
     const supabase = await createServerSupabaseClient()
 
     // Удаляем все продукты без исключений
-    const { error } = await supabase.from("products").delete()
+    const { error } = await supabase.from("products").delete().eq("TRUE", "TRUE")
 
     if (error) {
       logger.error("Ошибка при удалении продуктов", { error: error.message })
@@ -36,7 +36,7 @@ export async function deleteAllColoringPages() {
     const supabase = await createServerSupabaseClient()
 
     // Удаляем все страницы раскрасок без исключений
-    const { error } = await supabase.from("coloring_pages").delete()
+    const { error } = await supabase.from("coloring_pages").delete().eq("TRUE", "TRUE")
 
     if (error) {
       logger.error("Ошибка при удалении страниц раскрасок", { error: error.message })
