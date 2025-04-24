@@ -33,10 +33,10 @@ export async function requireAdmin() {
     } = await supabase.auth.getSession()
 
     if (!session) {
-      redirect("/unauthorized")
+      redirect("/login")
     }
 
-    // Check if the user is an admin
+    // Проверяем, является ли пользователь администратором
     const { data: adminUser, error } = await supabase
       .from("admin_users")
       .select("*")
@@ -50,8 +50,13 @@ export async function requireAdmin() {
 
     return { session, adminUser }
   } catch (error) {
+    if (error instanceof Error && error.message.includes("redirect")) {
+      // Это ожидаемое исключение от функции redirect(), пробрасываем его дальше
+      throw error
+    }
+
     console.error("Admin check error:", error)
-    redirect("/error")
+    redirect("/error?message=" + encodeURIComponent("Ошибка проверки прав администратора"))
   }
 }
 

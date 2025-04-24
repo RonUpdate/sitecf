@@ -1,7 +1,4 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
-import { ProductTable } from "@/components/product-table"
+import { UnifiedItemTable } from "@/components/unified-item-table"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
 
 export default async function ProductsPage() {
@@ -21,16 +18,15 @@ export default async function ProductsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Products</h1>
-        <Link href="/admin/products/new">
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Product
-          </Button>
-        </Link>
+        <h1 className="text-3xl font-bold">Товары</h1>
       </div>
 
-      <ProductTable products={products || []} />
+      <UnifiedItemTable
+        type="product"
+        initialItems={products || []}
+        addNewUrl="/admin/products/new"
+        addNewLabel="Добавить товар"
+      />
     </div>
   )
 }

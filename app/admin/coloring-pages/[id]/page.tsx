@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation"
-import { ColoringPageForm } from "@/components/coloring-page-form"
+import { UnifiedProductForm } from "@/components/unified-product-form"
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 
@@ -39,7 +39,13 @@ export default async function EditColoringPagePage({
     return (
       <div>
         <h1 className="text-3xl font-bold mb-6">Редактировать страницу раскраски</h1>
-        <ColoringPageForm coloringPage={coloringPage} />
+        <UnifiedProductForm
+          item={coloringPage}
+          type="coloringPage"
+          backUrl="/admin/coloring-pages"
+          backLabel="Назад к страницам раскраски"
+          successUrl="/admin/coloring-pages"
+        />
       </div>
     )
   } catch (error) {

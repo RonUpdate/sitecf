@@ -32,6 +32,7 @@ type Category = {
 export function CategoryTable({ categories }: { categories: Category[] }) {
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [localCategories, setLocalCategories] = useState<Category[]>(categories)
   const router = useRouter()
   const supabase = getSupabaseClient()
   const { toast } = useToast()
@@ -49,29 +50,56 @@ export function CategoryTable({ categories }: { categories: Category[] }) {
         if (error.message && error.message.includes("without RETURN")) {
           console.warn("Database function missing RETURN statement, but deletion may have succeeded:", error.message)
 
-          // The deletion might have actually succeeded despite the error
-          toast({
-            title: "Category deleted",
-            description: "The category has been deleted, but with a database warning.",
-          })
+          // Update local state to remove the deleted category
+          setLocalCategories((prev) => prev.filter((category) => category.id !== deleteId))
 
-          router.refresh()
+          toast({
+            title: "Категория удалена",
+            description: "Категория была успешно удалена из системы.",
+            variant: "default",
+          })
         } else {
           throw error
         }
       } else {
-        toast({
-          title: "Category deleted",
-          description: "The category has been successfully deleted.",
-        })
+        // Update local state to remove the deleted category
+        setLocalCategories((prev) => prev.filter((category) => category.id !== deleteId))
 
-        router.refresh()
+        toast({
+          title: "Категория удалена",
+          description: "Категория была успешно удалена из системы.",
+          variant: "default",
+        })
       }
+
+      // Show success notification
+      const successToast = document.createElement("div")
+      successToast.className =
+        "fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50 flex items-center shadow-lg"
+      successToast.innerHTML = `
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <span><strong>Успешно!</strong> Категория удалена.</span>
+      `
+      document.body.appendChild(successToast)
+
+      // Remove the notification after 3 seconds
+      setTimeout(() => {
+        if (document.body.contains(successToast)) {
+          document.body.removeChild(successToast)
+        }
+      }, 3000)
+
+      // Refresh the page after a short delay to show the notification
+      setTimeout(() => {
+        router.refresh()
+      }, 500)
     } catch (error) {
       console.error("Error deleting category:", error)
       toast({
-        title: "Error",
-        description: "Failed to delete the category. Please try again.",
+        title: "Ошибка",
+        description: "Не удалось удалить категорию. Пожалуйста, попробуйте снова.",
         variant: "destructive",
       })
     } finally {
@@ -80,12 +108,12 @@ export function CategoryTable({ categories }: { categories: Category[] }) {
     }
   }
 
-  if (categories.length === 0) {
+  if (localCategories.length === 0) {
     return (
       <div className="text-center py-12 border rounded-lg">
-        <p className="text-gray-500 dark:text-gray-400 mb-4">No categories found</p>
+        <p className="text-gray-500 dark:text-gray-400 mb-4">Категории не найдены</p>
         <Link href="/admin/categories/new">
-          <Button>Add your first category</Button>
+          <Button>Добавить первую категорию</Button>
         </Link>
       </div>
     )
@@ -97,15 +125,15 @@ export function CategoryTable({ categories }: { categories: Category[] }) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[100px]">Image</TableHead>
-              <TableHead>Name</TableHead>
+              <TableHead className="w-[100px]">Изображение</TableHead>
+              <TableHead>Название</TableHead>
               <TableHead className="hidden md:table-cell">Slug</TableHead>
-              <TableHead className="hidden md:table-cell">Description</TableHead>
-              <TableHead className="w-[150px] text-right">Actions</TableHead>
+              <TableHead className="hidden md:table-cell">Описание</TableHead>
+              <TableHead className="w-[150px] text-right">Действия</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {categories.map((category) => (
+            {localCategories.map((category) => (
               <TableRow key={category.id}>
                 <TableCell>
                   <div className="relative h-12 w-12 rounded overflow-hidden">
@@ -127,7 +155,7 @@ export function CategoryTable({ categories }: { categories: Category[] }) {
                     <Link href={`/admin/categories/${category.id}`}>
                       <Button size="icon" variant="ghost">
                         <Edit className="h-4 w-4" />
-                        <span className="sr-only">Edit</span>
+                        <span className="sr-only">Редактировать</span>
                       </Button>
                     </Link>
                     <Button
@@ -137,7 +165,7 @@ export function CategoryTable({ categories }: { categories: Category[] }) {
                       onClick={() => setDeleteId(category.id)}
                     >
                       <Trash2 className="h-4 w-4" />
-                      <span className="sr-only">Delete</span>
+                      <span className="sr-only">Удалить</span>
                     </Button>
                   </div>
                 </TableCell>
@@ -150,15 +178,16 @@ export function CategoryTable({ categories }: { categories: Category[] }) {
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Вы уверены?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the category and all associated coloring pages.
+              Это действие нельзя отменить. Категория будет удалена навсегда вместе со всеми связанными страницами
+              раскраски.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600" disabled={isDeleting}>
-              {isDeleting ? "Deleting..." : "Delete"}
+              {isDeleting ? "Удаление..." : "Удалить"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

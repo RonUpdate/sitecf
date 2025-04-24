@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { ProductForm } from "@/components/product-form"
+import { UnifiedProductForm } from "@/components/unified-product-form"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
 
 export default async function EditProductPage({
@@ -17,8 +17,14 @@ export default async function EditProductPage({
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Edit Product</h1>
-      <ProductForm product={product} />
+      <h1 className="text-3xl font-bold mb-6">Редактировать товар</h1>
+      <UnifiedProductForm
+        item={product}
+        type="product"
+        backUrl="/admin/products"
+        backLabel="Назад к товарам"
+        successUrl="/admin/products"
+      />
     </div>
   )
 }

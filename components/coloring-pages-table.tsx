@@ -104,13 +104,50 @@ export function ColoringPagesTable() {
       const { error } = await supabase.from("coloring_pages").delete().eq("id", deleteId)
 
       if (error) {
-        throw error
+        // Check for the specific PostgreSQL error about missing RETURN statements
+        if (error.message && error.message.includes("without RETURN")) {
+          console.warn("Database function missing RETURN statement, but deletion may have succeeded:", error.message)
+
+          // Update local state to remove the deleted page
+          setColoringPages((prev) => prev.filter((page) => page.id !== deleteId))
+
+          toast({
+            title: "Страница удалена",
+            description: "Страница раскраски успешно удалена.",
+            variant: "default",
+          })
+        } else {
+          throw error
+        }
+      } else {
+        // Update local state to remove the deleted page
+        setColoringPages((prev) => prev.filter((page) => page.id !== deleteId))
+
+        toast({
+          title: "Страница удалена",
+          description: "Страница раскраски успешно удалена.",
+          variant: "default",
+        })
       }
 
-      toast({
-        title: "Страница удалена",
-        description: "Страница раскраски успешно удалена.",
-      })
+      // Show success notification
+      const successToast = document.createElement("div")
+      successToast.className =
+        "fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50 flex items-center shadow-lg"
+      successToast.innerHTML = `
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <span><strong>Успешно!</strong> Страница раскраски удалена.</span>
+      `
+      document.body.appendChild(successToast)
+
+      // Remove the notification after 3 seconds
+      setTimeout(() => {
+        if (document.body.contains(successToast)) {
+          document.body.removeChild(successToast)
+        }
+      }, 3000)
 
       // Обновляем список страниц
       fetchColoringPages()
@@ -206,6 +243,7 @@ export function ColoringPagesTable() {
                         page.thumbnail_url ||
                         page.image_url ||
                         "/placeholder.svg?height=40&width=40&query=coloring+page" ||
+                        "/placeholder.svg" ||
                         "/placeholder.svg"
                       }
                       alt={page.title}

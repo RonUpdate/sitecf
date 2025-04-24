@@ -18,55 +18,69 @@ export default async function AdminLayout({
 }: {
   children: ReactNode
 }) {
-  const cookieStore = cookies()
-  const supabase = createServerComponentClient<Database>({ cookies: () => cookieStore })
+  try {
+    const cookieStore = cookies()
+    const supabase = createServerComponentClient<Database>({ cookies: () => cookieStore })
 
-  // Проверяем сессию
-  const {
-    data: { session },
-    error: sessionError,
-  } = await supabase.auth.getSession()
+    // Проверяем сессию
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession()
 
-  if (sessionError) {
-    logger.auth.error("Session error in admin layout", { error: sessionError })
-    // Вместо редиректа возвращаем компонент с клиентским редиректом
-    return <AuthRedirect to="/error?message=session_error" reason="Session error" />
-  }
+    if (sessionError) {
+      logger.auth.error("Session error in admin layout", { error: sessionError })
+      // Вместо редиректа возвращаем компонент с клиентским редиректом
+      return <AuthRedirect to="/error?message=session_error" reason="Session error" />
+    }
 
-  // Если нет сессии, возвращаем компонент с клиентским редиректом
-  if (!session) {
-    logger.auth.warn("No session in admin layout", { path: "/admin" })
-    return <AuthRedirect to="/login" reason="No session" />
-  }
+    // Если нет сессии, перенаправляем на страницу входа
+    if (!session) {
+      logger.auth.warn("No session in admin layout", { path: "/admin" })
+      // Используем клиентский редирект вместо серверного
+      return <AuthRedirect to="/login" reason="No session" />
+    }
 
-  // Проверяем, является ли пользователь администратором
-  const { data: adminUser, error: adminError } = await supabase
-    .from("admin_users")
-    .select("*")
-    .eq("email", session.user.email)
-    .single()
+    // Проверяем, является ли пользователь администратором
+    const { data: adminUser, error: adminError } = await supabase
+      .from("admin_users")
+      .select("*")
+      .eq("email", session.user.email)
+      .single()
 
-  // Если произошла ошибка при проверке или пользователь не админ
-  if (adminError || !adminUser) {
-    logger.auth.warn("Not an admin user", {
-      email: session.user.email,
-      error: adminError ? adminError.message : "User not found",
-    })
-    return <AuthRedirect to="/forbidden?reason=not_admin" reason="Not admin" />
-  }
+    // Если произошла ошибка при проверке или пользователь не админ
+    if (adminError || !adminUser) {
+      logger.auth.warn("Not an admin user", {
+        email: session.user.email,
+        error: adminError ? adminError.message : "User not found",
+      })
+      // Используем клиентский редирект вместо серверного
+      return <AuthRedirect to="/forbidden?reason=not_admin" reason="Not admin" />
+    }
 
-  // Если все проверки пройдены, отображаем админ-панель
-  return (
-    <SessionRefreshProvider>
-      <div className="flex min-h-screen">
-        <NavigationProgress />
-        <AdminSidebar />
-        <div className="flex-1 p-6 lg:p-8">
-          <PageTransition>{children}</PageTransition>
+    // Если все проверки пройдены, отображаем админ-панель
+    return (
+      <SessionRefreshProvider>
+        <div className="flex min-h-screen">
+          <NavigationProgress />
+          <AdminSidebar />
+          <div className="flex-1 p-6 lg:p-8">
+            <PageTransition>{children}</PageTransition>
+          </div>
+          <AutoSessionRefresh />
+          <SessionExpiryNotification />
         </div>
-        <AutoSessionRefresh />
-        <SessionExpiryNotification />
-      </div>
-    </SessionRefreshProvider>
-  )
+      </SessionRefreshProvider>
+    )
+  } catch (error) {
+    // Проверяем, является ли ошибка перенаправлением
+    if (error && typeof error === "object" && "__v0__redirect" in error) {
+      // Пробрасываем ошибку перенаправления дальше
+      throw error
+    }
+
+    // Логируем другие ошибки
+    logger.error("Error in admin layout:", error)
+    return <AuthRedirect to="/error?message=admin_layout_error" reason="Admin layout error" />
+  }
 }

@@ -13,8 +13,8 @@ export default function PublicLayout({
 }) {
   return (
     <div className="min-h-screen">
-      <header className="bg-white border-b dark:bg-gray-950 dark:border-gray-800">
-        <div className="container flex items-center justify-between h-16 px-4 md:px-6">
+      <header className="w-full bg-white border-b dark:bg-gray-950 dark:border-gray-800">
+        <div className="container mx-auto flex items-center justify-between h-16 px-4 md:px-6">
           <Link href="/" className="text-xl font-bold text-primary">
             Art Market
           </Link>
@@ -33,8 +33,8 @@ export default function PublicLayout({
         </div>
       </header>
       <main>{children}</main>
-      <footer className="bg-gray-50 border-t dark:bg-gray-950 dark:border-gray-800">
-        <div className="container px-4 py-12 md:px-6">
+      <footer className="w-full bg-gray-50 border-t dark:bg-gray-950 dark:border-gray-800">
+        <div className="container mx-auto px-4 py-12 md:px-6">
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             <div>
               <h3 className="text-lg font-bold mb-4">Art Market</h3>

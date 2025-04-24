@@ -23,6 +23,7 @@ import { Edit, Trash2, Plus, Loader2, AlertTriangle } from "lucide-react"
 import { getSupabaseClient } from "@/lib/supabase-client"
 import { useToast } from "@/hooks/use-toast"
 import type { BlogTag } from "@/types/blog"
+import { generateSlug } from "@/lib/transliteration"
 
 export function BlogTagsForm() {
   const [tags, setTags] = useState<BlogTag[]>([])
@@ -69,17 +70,18 @@ export function BlogTagsForm() {
     }
   }
 
-  const generateSlug = (text: string) => {
-    return text
-      .toString()
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, "-") // Replace spaces with -
-      .replace(/[^\w-]+/g, "") // Remove all non-word chars
-      .replace(/--+/g, "-") // Replace multiple - with single -
-      .replace(/^-+/, "") // Trim - from start of text
-      .replace(/-+$/, "") // Trim - from end of text
-  }
+  // Remove this function:
+  // const generateSlug = (text: string) => {
+  //   return text
+  //     .toString()
+  //     .toLowerCase()
+  //     .trim()
+  //     .replace(/\s+/g, "-") // Replace spaces with -
+  //     .replace(/[^\w-]+/g, "") // Remove all non-word chars
+  //     .replace(/--+/g, "-") // Replace multiple - with single -
+  //     .replace(/^-+/, "") // Trim - from start of text
+  //     .replace(/-+$/, "") // Trim - from end of text
+  // }
 
   // Replace the existing handleNameChange function with this improved version
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
