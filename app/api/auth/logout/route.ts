@@ -4,48 +4,29 @@ import { NextResponse } from "next/server"
 import type { Database } from "@/types/supabase"
 import logger from "@/lib/logger"
 
-// Обработка POST запросов (для программного вызова)
-export async function POST(request: Request) {
+// This is a simple API route that handles logout
+export async function POST() {
   try {
     const cookieStore = cookies()
     const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore })
 
-    // Выход из системы
+    // Sign out the user
     const { error } = await supabase.auth.signOut()
 
     if (error) {
-      logger.auth.error("Ошибка при выходе из системы", { error: error.message })
+      logger.auth.error("Logout error", { error: error.message })
       return NextResponse.json({ success: false, error: error.message }, { status: 500 })
     }
 
-    logger.auth.info("Пользователь успешно вышел из системы")
-
-    // Возвращаем JSON с информацией об успешном выходе
-    return NextResponse.json({
-      success: true,
-      message: "Успешный выход из системы",
-      redirectTo: "/",
-    })
+    logger.auth.info("User logged out successfully")
+    return NextResponse.json({ success: true, message: "Logged out successfully" })
   } catch (error: any) {
-    logger.auth.error("Непредвиденная ошибка при выходе из системы", { error: error.message })
-    return NextResponse.json({ success: false, error: "Произошла ошибка при выходе из системы" }, { status: 500 })
+    logger.auth.error("Unexpected logout error", { error: error.message })
+    return NextResponse.json({ success: false, error: "An error occurred during logout" }, { status: 500 })
   }
 }
 
-// Обработка GET запросов (для прямого доступа через браузер)
-export async function GET(request: Request) {
-  try {
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore })
-
-    // Выход из системы
-    await supabase.auth.signOut()
-
-    // Для GET запросов перенаправляем на главную страницу
-    return NextResponse.redirect(new URL("/", request.url))
-  } catch (error: any) {
-    logger.auth.error("Ошибка при выходе из системы через GET", { error: error.message })
-    // В случае ошибки все равно перенаправляем на главную
-    return NextResponse.redirect(new URL("/", request.url))
-  }
+// Handle direct access to the API route
+export async function GET() {
+  return new Response("This endpoint only accepts POST requests", { status: 405 })
 }

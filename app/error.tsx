@@ -13,9 +13,20 @@ export default function Error({
   reset: () => void
 }) {
   useEffect(() => {
-    // Логируем ошибку в консоль для отладки
+    // Safely log the error to console for debugging
     console.error("Ошибка в приложении:", error)
   }, [error])
+
+  // Extract error message safely regardless of error format
+  const getErrorMessage = () => {
+    if (typeof error === "string") return error
+    if (error instanceof Error) return error.message
+    if (error && typeof error === "object") {
+      if ("message" in error) return String(error.message)
+      return JSON.stringify(error)
+    }
+    return "Неизвестная ошибка"
+  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-b from-red-50 to-white">
@@ -40,7 +51,7 @@ export default function Error({
           </Link>
         </div>
 
-        {error.digest && (
+        {error && error.digest && (
           <div className="mt-8 text-sm text-gray-400">
             <p>Код ошибки: {error.digest}</p>
           </div>
@@ -49,7 +60,7 @@ export default function Error({
         {/* Отображаем сообщение об ошибке только в режиме разработки */}
         {process.env.NODE_ENV === "development" && (
           <div className="mt-4 p-4 bg-gray-100 rounded-md text-left">
-            <p className="font-mono text-sm text-red-600">{error.message}</p>
+            <p className="font-mono text-sm text-red-600">{getErrorMessage()}</p>
           </div>
         )}
       </div>

@@ -1,32 +1,29 @@
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import type { Database } from "@/types/supabase"
 
-// Проверка аутентификации пользователя
 export async function requireAuth() {
-  try {
-    const supabase = createServerComponentClient<Database>({ cookies })
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
+  const cookieStore = cookies()
+  const supabase = createServerComponentClient<Database>({ cookies: () => cookieStore })
 
-    if (!session) {
-      // Вместо вызова unauthorized(), используем redirect
-      redirect("/unauthorized")
-    }
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
 
-    return session
-  } catch (error) {
-    console.error("Auth error:", error)
-    redirect("/unauthorized")
+  if (!session) {
+    redirect("/login")
   }
+
+  return session
 }
 
-// Проверка администратора
+// Add back the requireAdmin function
 export async function requireAdmin() {
   try {
-    const supabase = createServerComponentClient<Database>({ cookies })
+    const cookieStore = cookies()
+    const supabase = createServerComponentClient<Database>({ cookies: () => cookieStore })
+
     const {
       data: { session },
     } = await supabase.auth.getSession()
@@ -35,7 +32,7 @@ export async function requireAdmin() {
       redirect("/unauthorized")
     }
 
-    // Проверяем, является ли пользователь администратором
+    // Check if the user is an admin
     const { data: adminUser, error } = await supabase
       .from("admin_users")
       .select("*")
@@ -43,6 +40,7 @@ export async function requireAdmin() {
       .single()
 
     if (error || !adminUser) {
+      console.error("Admin check failed:", error)
       redirect("/forbidden")
     }
 
@@ -53,13 +51,28 @@ export async function requireAdmin() {
   }
 }
 
-// Проверка роли пользователя
+export async function isAdmin(email: string): Promise<boolean> {
+  try {
+    const cookieStore = cookies()
+    const supabase = createServerComponentClient<Database>({ cookies: () => cookieStore })
+
+    const { data: adminUser } = await supabase.from("admin_users").select("*").eq("email", email).single()
+
+    return !!adminUser
+  } catch (error) {
+    console.error("Error checking admin status:", error)
+    return false
+  }
+}
+
+// Add the other required functions back
 export async function requireRole(allowedRoles: string[]) {
   try {
     const session = await requireAuth()
+    const cookieStore = cookies()
+    const supabase = createServerComponentClient<Database>({ cookies: () => cookieStore })
 
-    // Получаем роль пользователя из Supabase
-    const supabase = createServerComponentClient<Database>({ cookies })
+    // Get the user's role from Supabase
     const { data: userRole, error } = await supabase
       .from("user_roles")
       .select("role")
@@ -77,12 +90,12 @@ export async function requireRole(allowedRoles: string[]) {
   }
 }
 
-// Проверка владельца ресурса
 export async function requireResourceOwner(resourceTable: string, resourceId: string) {
   try {
     const session = await requireAuth()
+    const cookieStore = cookies()
+    const supabase = createServerComponentClient<Database>({ cookies: () => cookieStore })
 
-    const supabase = createServerComponentClient<Database>({ cookies })
     const { data: resource, error } = await supabase.from(resourceTable).select("user_id").eq("id", resourceId).single()
 
     if (error || !resource || resource.user_id !== session.user.id) {
@@ -93,18 +106,5 @@ export async function requireResourceOwner(resourceTable: string, resourceId: st
   } catch (error) {
     console.error("Resource owner check error:", error)
     redirect("/error")
-  }
-}
-
-// Проверка, является ли пользователь администратором
-export async function isAdmin(userEmail: string): Promise<boolean> {
-  try {
-    const supabase = createServerComponentClient<Database>({ cookies })
-    const { data: adminUser } = await supabase.from("admin_users").select("*").eq("email", userEmail).single()
-
-    return !!adminUser
-  } catch (error) {
-    console.error("Error checking admin status:", error)
-    return false
   }
 }

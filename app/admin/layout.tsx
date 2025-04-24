@@ -48,9 +48,9 @@ export default async function AdminLayout({
 
   // Если произошла ошибка при проверке или пользователь не админ
   if (adminError || !adminUser) {
-    logger.auth.warn("Not an admin user", { 
-      email: session.user.email, 
-      error: adminError ? adminError.message : "User not found" 
+    logger.auth.warn("Not an admin user", {
+      email: session.user.email,
+      error: adminError ? adminError.message : "User not found",
     })
     return <AuthRedirect to="/forbidden?reason=not_admin" reason="Not admin" />
   }

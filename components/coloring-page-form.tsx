@@ -61,6 +61,9 @@ export function ColoringPageForm({ coloringPage }: { coloringPage?: ColoringPage
   const supabase = getSupabaseClient()
   const { toast } = useToast()
 
+  // Add a state variable to track if the slug has been manually edited
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false)
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -128,12 +131,28 @@ export function ColoringPageForm({ coloringPage }: { coloringPage?: ColoringPage
       .replace(/--+/g, "-") // Replace multiple - with single -
   }
 
+  // Replace the existing handleTitleChange function with this improved version
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value
     setTitle(newTitle)
-    if (!isEditing || !coloringPage?.slug) {
+
+    // Only auto-generate the slug if it hasn't been manually edited
+    // or if we're creating a new coloring page (not editing)
+    if (!slugManuallyEdited && (!isEditing || !coloringPage?.slug)) {
       setSlug(generateSlug(newTitle))
     }
+  }
+
+  // Add a new function to handle slug changes
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSlugManuallyEdited(true)
+    setSlug(e.target.value)
+  }
+
+  // Update the Generate button click handler
+  const regenerateSlug = () => {
+    setSlug(generateSlug(title))
+    setSlugManuallyEdited(true)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -267,12 +286,19 @@ export function ColoringPageForm({ coloringPage }: { coloringPage?: ColoringPage
                   <Input id="title" value={title} onChange={handleTitleChange} required />
                 </div>
 
+                {/* In the JSX, update the slug input and button */}
                 <div className="space-y-2">
                   <Label htmlFor="slug">Slug</Label>
                   <div className="flex gap-2">
-                    <Input id="slug" value={slug} onChange={(e) => setSlug(e.target.value)} required />
-                    <Button type="button" variant="outline" onClick={() => setSlug(generateSlug(title))}>
-                      Сгенерировать
+                    <Input
+                      id="slug"
+                      value={slug}
+                      onChange={handleSlugChange}
+                      required
+                      placeholder="url-friendly-name"
+                    />
+                    <Button type="button" variant="outline" onClick={regenerateSlug}>
+                      Generate
                     </Button>
                   </div>
                   <p className="text-xs text-gray-500">Используется в URL, например, /coloring-page/your-slug</p>

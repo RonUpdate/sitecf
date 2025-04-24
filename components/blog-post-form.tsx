@@ -39,6 +39,8 @@ export function BlogPostForm({ post }: BlogPostFormProps) {
   const [loading, setLoading] = useState(false)
   const [fetchingData, setFetchingData] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // Add a state variable to track if the slug has been manually edited
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false)
 
   const router = useRouter()
   const supabase = getSupabaseClient()
@@ -125,12 +127,28 @@ export function BlogPostForm({ post }: BlogPostFormProps) {
       .replace(/-+$/, "") // Trim - from end of text
   }
 
+  // Replace the existing handleTitleChange function with this improved version
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value
     setTitle(newTitle)
-    if (!isEditing || !post?.slug) {
+
+    // Only auto-generate the slug if it hasn't been manually edited
+    // or if we're creating a new blog post (not editing)
+    if (!slugManuallyEdited && (!isEditing || !post?.slug)) {
       setSlug(generateSlug(newTitle))
     }
+  }
+
+  // Add a new function to handle slug changes
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSlugManuallyEdited(true)
+    setSlug(e.target.value)
+  }
+
+  // Update the Generate button click handler
+  const regenerateSlug = () => {
+    setSlug(generateSlug(title))
+    setSlugManuallyEdited(true)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -278,11 +296,18 @@ export function BlogPostForm({ post }: BlogPostFormProps) {
                   <Input id="title" value={title} onChange={handleTitleChange} required />
                 </div>
 
+                {/* In the JSX, update the slug input and button */}
                 <div className="space-y-2">
                   <Label htmlFor="slug">Slug</Label>
                   <div className="flex gap-2">
-                    <Input id="slug" value={slug} onChange={(e) => setSlug(e.target.value)} required />
-                    <Button type="button" variant="outline" onClick={() => setSlug(generateSlug(title))}>
+                    <Input
+                      id="slug"
+                      value={slug}
+                      onChange={handleSlugChange}
+                      required
+                      placeholder="url-friendly-name"
+                    />
+                    <Button type="button" variant="outline" onClick={regenerateSlug}>
                       Сгенерировать
                     </Button>
                   </div>

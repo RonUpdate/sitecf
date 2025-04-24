@@ -53,6 +53,9 @@ export function ProductForm({ product }: { product?: Product }) {
   const supabase = getSupabaseClient()
   const { toast } = useToast()
 
+  // Add a state variable to track if the slug has been manually edited
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false)
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -102,12 +105,28 @@ export function ProductForm({ product }: { product?: Product }) {
       .replace(/--+/g, "-") // Replace multiple - with single -
   }
 
+  // Replace the existing handleNameChange function with this improved version
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value
     setName(newName)
-    if (!isEditing || !product?.slug) {
+
+    // Only auto-generate the slug if it hasn't been manually edited
+    // or if we're creating a new product (not editing)
+    if (!slugManuallyEdited && (!isEditing || !product?.slug)) {
       setSlug(generateSlug(newName))
     }
+  }
+
+  // Add a new function to handle slug changes
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSlugManuallyEdited(true)
+    setSlug(e.target.value)
+  }
+
+  // Update the Generate button click handler
+  const regenerateSlug = () => {
+    setSlug(generateSlug(name))
+    setSlugManuallyEdited(true)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -200,11 +219,18 @@ export function ProductForm({ product }: { product?: Product }) {
                   <Input id="name" value={name} onChange={handleNameChange} required />
                 </div>
 
+                {/* In the JSX, update the slug input and button */}
                 <div className="space-y-2">
                   <Label htmlFor="slug">Slug</Label>
                   <div className="flex gap-2">
-                    <Input id="slug" value={slug} onChange={(e) => setSlug(e.target.value)} required />
-                    <Button type="button" variant="outline" onClick={() => setSlug(generateSlug(name))}>
+                    <Input
+                      id="slug"
+                      value={slug}
+                      onChange={handleSlugChange}
+                      required
+                      placeholder="url-friendly-name"
+                    />
+                    <Button type="button" variant="outline" onClick={regenerateSlug}>
                       Generate
                     </Button>
                   </div>
