@@ -5,18 +5,7 @@ import type React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import {
-  BarChart3,
-  FileText,
-  Home,
-  ImageIcon,
-  LayoutDashboard,
-  Package,
-  Settings,
-  Tag,
-  Trash2,
-  Users,
-} from "lucide-react"
+import { FileText, Home, ImageIcon, LayoutDashboard, Package, Tag, Trash2, Users } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { AdminLogoutButton } from "@/components/admin-logout-button"
@@ -57,11 +46,6 @@ export function AdminSidebar({ className }: SidebarNavProps) {
       href: "/admin/users",
       icon: <Users className="mr-2 h-4 w-4" />,
     },
-    {
-      title: "Аналитика",
-      href: "/admin/analytics",
-      icon: <BarChart3 className="mr-2 h-4 w-4" />,
-    },
   ]
 
   const utilityItems = [
@@ -69,11 +53,6 @@ export function AdminSidebar({ className }: SidebarNavProps) {
       title: "Очистка данных",
       href: "/admin/data-cleanup",
       icon: <Trash2 className="mr-2 h-4 w-4" />,
-    },
-    {
-      title: "Настройки",
-      href: "/admin/settings",
-      icon: <Settings className="mr-2 h-4 w-4" />,
     },
     {
       title: "Просмотр сайта",

@@ -2,20 +2,7 @@ import Link from "next/link"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  BarChart3,
-  FileText,
-  ImageIcon,
-  LayoutDashboard,
-  ListTodo,
-  Package,
-  Plus,
-  Settings,
-  ShoppingCart,
-  Tag,
-  Trash2,
-  Users,
-} from "lucide-react"
+import { FileText, ImageIcon, ListTodo, Package, Plus, ShoppingCart, Tag, Trash2 } from "lucide-react"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
 
 export default async function AdminDashboard() {
@@ -48,14 +35,6 @@ export default async function AdminDashboard() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Панель управления</h1>
-        <div className="flex items-center gap-2">
-          <Link href="/admin/settings">
-            <Button variant="outline" size="icon">
-              <Settings className="h-4 w-4" />
-              <span className="sr-only">Настройки</span>
-            </Button>
-          </Link>
-        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -212,15 +191,13 @@ export default async function AdminDashboard() {
 
                 <div className="flex items-center gap-4 rounded-lg border p-4">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                    <Users className="h-5 w-5 text-primary" />
+                    <Tag className="h-5 w-5 text-primary" />
                   </div>
                   <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium leading-none">Управление пользователями</p>
-                    <p className="text-sm text-muted-foreground">
-                      Просмотр и управление учетными записями пользователей
-                    </p>
+                    <p className="text-sm font-medium leading-none">Управление категориями</p>
+                    <p className="text-sm text-muted-foreground">Просмотр и редактирование категорий</p>
                   </div>
-                  <Link href="/admin/users">
+                  <Link href="/admin/categories">
                     <Button variant="ghost" size="sm">
                       Перейти
                     </Button>
@@ -229,13 +206,13 @@ export default async function AdminDashboard() {
 
                 <div className="flex items-center gap-4 rounded-lg border p-4">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                    <BarChart3 className="h-5 w-5 text-primary" />
+                    <ImageIcon className="h-5 w-5 text-primary" />
                   </div>
                   <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium leading-none">Аналитика</p>
-                    <p className="text-sm text-muted-foreground">Просмотр статистики и аналитических данных</p>
+                    <p className="text-sm font-medium leading-none">Управление раскрасками</p>
+                    <p className="text-sm text-muted-foreground">Просмотр и редактирование раскрасок</p>
                   </div>
-                  <Link href="/admin/analytics">
+                  <Link href="/admin/coloring-pages">
                     <Button variant="ghost" size="sm">
                       Перейти
                     </Button>
@@ -323,7 +300,7 @@ export default async function AdminDashboard() {
                 <p className="text-sm text-muted-foreground mb-4">Перейти на главную страницу сайта</p>
                 <Link href="/" className="w-full">
                   <Button variant="outline" className="w-full">
-                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    <FileText className="mr-2 h-4 w-4" />
                     Перейти на сайт
                   </Button>
                 </Link>
