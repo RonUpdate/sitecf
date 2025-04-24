@@ -34,7 +34,7 @@ export default function PublicLayout({
       </header>
       <main>{children}</main>
       <footer className="w-full bg-gray-50 border-t dark:bg-gray-950 dark:border-gray-800">
-        <div className="container mx-auto px-4 py-12 md:px-6">
+        <div className="w-full px-4 py-12 md:px-6">
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             <div>
               <h3 className="text-lg font-bold mb-4">Art Market</h3>

@@ -232,9 +232,9 @@ export function UnifiedProductForm({ item, type, backUrl, backLabel, successUrl 
         itemData = {
           name,
           description,
-          price: Number.parseFloat(price) || 0,
+          price: price ? Number.parseFloat(price) : 0,
           slug,
-          stock_quantity: Number.parseInt(stockQuantity) || 0,
+          stock_quantity: stockQuantity ? Number.parseInt(stockQuantity) : 0,
           is_featured: isFeatured,
           category_id: categoryId || null,
           image_url: finalImageUrl,
@@ -358,7 +358,6 @@ export function UnifiedProductForm({ item, type, backUrl, backLabel, successUrl 
                     min="0"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
-                    required
                   />
                 </div>
 
@@ -371,7 +370,6 @@ export function UnifiedProductForm({ item, type, backUrl, backLabel, successUrl 
                       min="0"
                       value={stockQuantity}
                       onChange={(e) => setStockQuantity(e.target.value)}
-                      required
                     />
                   </div>
                 ) : (

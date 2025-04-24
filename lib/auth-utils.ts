@@ -24,40 +24,30 @@ export async function requireAuth() {
 }
 
 export async function requireAdmin() {
-  try {
-    const cookieStore = cookies()
-    const supabase = createServerComponentClient<Database>({ cookies: () => cookieStore })
+  const cookieStore = cookies()
+  const supabase = createServerComponentClient<Database>({ cookies: () => cookieStore })
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
 
-    if (!session) {
-      redirect("/login")
-    }
-
-    // Проверяем, является ли пользователь администратором
-    const { data: adminUser, error } = await supabase
-      .from("admin_users")
-      .select("*")
-      .eq("email", session.user.email)
-      .single()
-
-    if (error || !adminUser) {
-      console.error("Admin check failed:", error)
-      redirect("/forbidden")
-    }
-
-    return { session, adminUser }
-  } catch (error) {
-    if (error instanceof Error && error.message.includes("redirect")) {
-      // Это ожидаемое исключение от функции redirect(), пробрасываем его дальше
-      throw error
-    }
-
-    console.error("Admin check error:", error)
-    redirect("/error?message=" + encodeURIComponent("Ошибка проверки прав администратора"))
+  if (!session) {
+    redirect("/login")
   }
+
+  // Проверяем, является ли пользователь администратором
+  const { data: adminUser, error } = await supabase
+    .from("admin_users")
+    .select("*")
+    .eq("email", session.user.email)
+    .single()
+
+  if (error || !adminUser) {
+    console.error("Admin check failed:", error)
+    redirect("/forbidden")
+  }
+
+  return { session, adminUser }
 }
 
 export async function isAdmin(email: string): Promise<boolean> {

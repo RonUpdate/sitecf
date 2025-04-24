@@ -149,9 +149,9 @@ export function ProductForm({ product }: { product?: Product }) {
       const productData = {
         name,
         description,
-        price: Number.parseFloat(price),
+        price: price ? Number.parseFloat(price) : 0,
         slug,
-        stock_quantity: Number.parseInt(stockQuantity),
+        stock_quantity: stockQuantity ? Number.parseInt(stockQuantity) : 0,
         is_featured: isFeatured,
         category_id: categoryId || null,
         image_url: finalImageUrl,
@@ -237,7 +237,6 @@ export function ProductForm({ product }: { product?: Product }) {
                     min="0"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
-                    required
                   />
                 </div>
 
@@ -249,7 +248,6 @@ export function ProductForm({ product }: { product?: Product }) {
                     min="0"
                     value={stockQuantity}
                     onChange={(e) => setStockQuantity(e.target.value)}
-                    required
                   />
                 </div>
 
