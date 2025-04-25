@@ -76,6 +76,7 @@ export function LoginFormWithSWR() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          placeholder="sonyakern605@gmail.com"
           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-800"
         />
       </div>

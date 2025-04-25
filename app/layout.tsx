@@ -7,9 +7,10 @@ import { ThemeProvider } from "@/components/theme-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Art Market - Premium Coloring Pages",
-  description: "Discover high-quality coloring pages for all ages",
+  title: "Art Market - Premium Coloring Pages by Sonya Kern",
+  description: "Discover high-quality coloring pages for all ages by Sonya Kern",
   manifest: "/manifest.json",
+  authors: [{ name: "Sonya Kern", url: "mailto:sonyakern605@gmail.com" }],
     generator: 'v0.dev'
 }
 

@@ -7,5 +7,5 @@ CREATE TABLE IF NOT EXISTS admin_users (
 
 -- Add an admin user (replace with your email)
 INSERT INTO admin_users (email)
-VALUES ('admin@example.com')
+VALUES ('sonyakern605@gmail.com')
 ON CONFLICT (email) DO NOTHING;

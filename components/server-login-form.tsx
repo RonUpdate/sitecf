@@ -137,7 +137,7 @@ export function ServerLoginForm({ from = "/admin" }: { from?: string }) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          placeholder="admin@example.com"
+          placeholder="sonyakern605@gmail.com"
           disabled={loading || !supabaseInitialized}
         />
       </div>
