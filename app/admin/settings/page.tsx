@@ -18,7 +18,9 @@ export default function SettingsPage() {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const [faviconUrl, setFaviconUrl] = useState("")
+  const [faviconUrl, setFaviconUrl] = useState(
+    "https://uenczyfmsqiafcjrlial.supabase.co/storage/v1/object/public/favicons//watercolor-sun-transparent.ico",
+  )
   const [faviconFile, setFaviconFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 

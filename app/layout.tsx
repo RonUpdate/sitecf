@@ -13,7 +13,8 @@ const inter = Inter({
 })
 
 // Default favicon URL in case we can't fetch from the database
-const DEFAULT_FAVICON_URL = "/generic-app-icon.png"
+const DEFAULT_FAVICON_URL =
+  "https://uenczyfmsqiafcjrlial.supabase.co/storage/v1/object/public/favicons//watercolor-sun-transparent.ico"
 
 export async function generateMetadata(): Promise<Metadata> {
   // Try to fetch favicon URL from settings
