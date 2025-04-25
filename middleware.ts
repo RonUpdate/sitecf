@@ -20,10 +20,19 @@ export async function middleware(req: NextRequest) {
   }
 
   try {
-    // Получаем сессию пользователя
+    // Получаем сессию пользователя с таймаутом
+    const sessionPromise = supabase.auth.getSession()
+
+    // Добавляем таймаут для предотвращения зависания
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("Session check timed out")), 3000)
+    })
+
     const {
       data: { session },
-    } = await supabase.auth.getSession()
+    } = (await Promise.race([sessionPromise, timeoutPromise.then(() => ({ data: { session: null } }))])) as {
+      data: { session: any }
+    }
 
     // Если пытаемся получить доступ к админке без сессии
     if (isAdminPath && !session) {
@@ -38,6 +47,11 @@ export async function middleware(req: NextRequest) {
     }
   } catch (error) {
     console.error("Middleware error:", error)
+
+    // В случае ошибки, пропускаем запрос, чтобы избежать зацикливания
+    if (isAdminPath) {
+      return NextResponse.redirect(new URL("/error", req.url))
+    }
   }
 
   return res

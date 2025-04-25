@@ -79,12 +79,20 @@ export function useSessionRefresh() {
 
         return true
       }
+
+      // Если сессия не обновилась, сбрасываем состояние
+      setIsRefreshing(false)
+      return false
     } catch (err) {
       console.error("Ошибка при обновлении сессии:", err)
       setError("Не удалось обновить сессию")
+      setIsRefreshing(false)
       return false
     } finally {
-      setIsRefreshing(false)
+      // Убедимся, что состояние обновления сбрасывается
+      setTimeout(() => {
+        setIsRefreshing(false)
+      }, 1000)
     }
   }
 
@@ -115,9 +123,13 @@ export function useSessionRefresh() {
 
   // Эффект для инициализации проверки сессии и настройки таймера
   useEffect(() => {
+    let isMounted = true
+
     const initSession = async () => {
+      if (!isMounted) return
+
       const expiryDate = await checkSession()
-      if (expiryDate) {
+      if (expiryDate && isMounted) {
         setupRefreshTimer(expiryDate)
       }
     }
@@ -126,16 +138,20 @@ export function useSessionRefresh() {
 
     // Настраиваем интервал для периодической проверки состояния сессии
     const intervalId = setInterval(async () => {
+      if (!isMounted) return
+
       const expiryDate = await checkSession()
-      if (expiryDate) {
+      if (expiryDate && isMounted) {
         setupRefreshTimer(expiryDate)
       }
     }, CHECK_INTERVAL)
 
     // Обработчик события фокуса окна для проверки сессии при возвращении на вкладку
     const handleFocus = () => {
+      if (!isMounted) return
+
       checkSession().then((expiryDate) => {
-        if (expiryDate) {
+        if (expiryDate && isMounted) {
           setupRefreshTimer(expiryDate)
         }
       })
@@ -145,6 +161,7 @@ export function useSessionRefresh() {
 
     // Очистка при размонтировании
     return () => {
+      isMounted = false
       if (timerRef.current) {
         clearTimeout(timerRef.current)
       }
