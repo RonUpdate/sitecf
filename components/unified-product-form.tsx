@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import Image from "next/image"
+import Image from "@/next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -178,6 +178,7 @@ export function UnifiedProductForm({ item, type, backUrl, backLabel, successUrl 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log("handleSubmit called") // Add this line
 
     // Prevent multiple submissions
     if (formSubmitted || loading) {
@@ -285,6 +286,7 @@ export function UnifiedProductForm({ item, type, backUrl, backLabel, successUrl 
       }
 
       // Redirect after successful submission
+      console.log("Redirecting to:", successUrl) // Add this line
       router.push(successUrl)
       router.refresh()
     } catch (error: any) {

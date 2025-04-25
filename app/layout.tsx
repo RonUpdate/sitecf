@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import { NotificationProvider } from "@/components/notification-provider" // Import NotificationProvider
 
 const inter = Inter({
   subsets: ["latin"],
@@ -36,7 +37,11 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          {children}
+          <NotificationProvider>
+            {" "}
+            {/* Wrap children with NotificationProvider */}
+            {children}
+          </NotificationProvider>
         </ThemeProvider>
       </body>
     </html>
