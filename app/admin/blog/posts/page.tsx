@@ -3,24 +3,21 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import Link from "next/link"
 
-export default async function UsersPage() {
+export default async function BlogPostsPage() {
   const supabase = createServerSupabaseClient()
 
-  const { data: users, error } = await supabase
-    .from("admin_users")
-    .select("*")
-    .order("created_at", { ascending: false })
+  const { data: posts, error } = await supabase.from("blog_posts").select("*").order("created_at", { ascending: false })
 
   if (error) {
-    console.error("Error fetching users:", error)
+    console.error("Error fetching posts:", error)
   }
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Users Management</h1>
-        <Link href="/admin/users/new">
-          <Button>Add New User</Button>
+        <h1 className="text-3xl font-bold">Blog Posts</h1>
+        <Link href="/admin/blog/posts/new">
+          <Button>Add New Post</Button>
         </Link>
       </div>
 
@@ -28,30 +25,30 @@ export default async function UsersPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Created At</TableHead>
+              <TableHead>Title</TableHead>
+              <TableHead>Author</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Created</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users?.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>{user.name || "N/A"}</TableCell>
-                <TableCell>{user.email}</TableCell>
+            {posts?.map((post) => (
+              <TableRow key={post.id}>
+                <TableCell className="font-medium">{post.title}</TableCell>
+                <TableCell>{post.author || "Unknown"}</TableCell>
                 <TableCell>
                   <span
                     className={`px-2 py-1 rounded text-xs ${
-                      user.role === "admin" ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800"
+                      post.published ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"
                     }`}
                   >
-                    {user.role}
+                    {post.published ? "Published" : "Draft"}
                   </span>
                 </TableCell>
-                <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
+                <TableCell>{new Date(post.created_at).toLocaleDateString()}</TableCell>
                 <TableCell>
-                  <Link href={`/admin/users/${user.id}`}>
+                  <Link href={`/admin/blog/posts/${post.id}`}>
                     <Button variant="outline" size="sm" className="mr-2">
                       Edit
                     </Button>

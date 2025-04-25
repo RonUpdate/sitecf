@@ -4,39 +4,27 @@ import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 import { checkPermission } from "@/lib/permissions"
 import type { Database } from "@/types/supabase"
 
-export async function GET(request: NextRequest) {
-  const supabase = createRouteHandlerClient<Database>({ cookies })
-
-  const { data, error } = await supabase.from("categories").select("*").order("created_at", { ascending: false })
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-
-  return NextResponse.json(data)
-}
-
 export async function POST(request: NextRequest) {
-  console.log("POST /api/categories called") // Add this line
+  console.log("POST /api/products called") // Add this line
   try {
-    // Проверяем разрешение на создание категории
-    await checkPermission("canCreateCategory")
+    // Проверяем разрешение на создание товара
+    await checkPermission("canCreateProduct")
 
     const supabase = createRouteHandlerClient<Database>({ cookies })
     const body = await request.json()
     console.log("Received body:", body) // Add this line
 
-    const { data, error } = await supabase.from("categories").insert(body).select().single()
+    const { data, error } = await supabase.from("products").insert(body).select().single()
 
     if (error) {
       console.error("Supabase error:", error) // Add this line
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    console.log("Category created successfully:", data) // Add this line
+    console.log("Product created successfully:", data) // Add this line
     return NextResponse.json(data)
   } catch (error: any) {
-    console.error("Error in POST /api/categories:", error) // Add this line
+    console.error("Error in POST /api/products:", error) // Add this line
     // Ошибки unauthorized() и forbidden() будут автоматически обработаны
     return NextResponse.json({ error: error.message }, { status: 500 })
   }

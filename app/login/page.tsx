@@ -1,55 +1,84 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import type { Database } from "@/types/supabase"
+import type React from "react"
+
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { getSupabaseClient } from "@/lib/supabase"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { toast } from "@/hooks/use-toast"
 
 export default function LoginPage() {
-  const [loading, setLoading] = useState(true)
-  const [hasSession, setHasSession] = useState(false)
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const from = searchParams.get("from") || "/admin"
-  const supabase = createClientComponentClient<Database>()
+  const [isLoading, setIsLoading] = useState(false)
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
 
-  useEffect(() => {
-    async function checkSession() {
-      try {
-        const { data } = await supabase.auth.getSession()
-        console.log("Session data:", data) // Add this line
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
 
-        if (data.session) {
-          setHasSession(true)
-          // Only redirect if not coming from middleware
-          if (!searchParams.has("from")) {
-            router.replace("/admin")
-          }
-        } else {
-          setLoading(false)
-        }
-      } catch (error) {
-        console.error("Error checking session:", error)
-        setLoading(false)
-      }
+    try {
+      const supabase = getSupabaseClient()
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (error) throw error
+
+      toast({
+        title: "Success",
+        description: "You have been logged in successfully",
+      })
+
+      router.push("/admin")
+      router.refresh()
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to log in",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
     }
-
-    checkSession()
-  }, [router, supabase.auth, searchParams])
-
-  if (loading) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 py-12 sm:px-6 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Loading...</h2>
-        </div>
-      </div>
-    )
   }
 
-  if (hasSession) {
-    return null
-  }
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-2xl text-center">Admin Login</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            </div>
 
-  return <div>Login</div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Logging in..." : "Login"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  )
 }

@@ -1,91 +1,77 @@
-"use client"
-import { AdminStatsCards } from "@/components/admin-stats-cards"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { FileText, ImageIcon, Package, Plus, Tag } from "lucide-react"
-import Link from "next/link"
+import { createServerSupabaseClient } from "@/lib/supabase"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-export default function AdminDashboardPage() {
+export default async function AdminDashboard() {
+  const supabase = createServerSupabaseClient()
+
+  // Get counts
+  const { count: usersCount } = await supabase.from("admin_users").select("*", { count: "exact", head: true })
+
+  const { count: postsCount } = await supabase.from("blog_posts").select("*", { count: "exact", head: true })
+
+  const { count: categoriesCount } = await supabase.from("blog_categories").select("*", { count: "exact", head: true })
+
+  const { count: tagsCount } = await supabase.from("blog_tags").select("*", { count: "exact", head: true })
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Панель управления</h1>
-      </div>
+    <div>
+      <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
 
-      <AdminStatsCards />
-
-      <h2 className="text-xl font-bold mt-8">Быстрые действия</h2>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm font-medium">Добавить товар</CardTitle>
-            <Plus className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="pb-2">
+            <CardTitle>Users</CardTitle>
           </CardHeader>
-          <CardContent className="pt-4">
-            <p className="text-xs text-muted-foreground">Создать новый товар в каталоге</p>
+          <CardContent>
+            <p className="text-3xl font-bold">{usersCount}</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              <a href="/admin/users" className="text-blue-600 hover:underline">
+                Manage Users
+              </a>
+            </p>
           </CardContent>
-          <CardFooter>
-            <Link href="/admin/products/new" className="w-full">
-              <Button className="w-full">
-                <Package className="mr-2 h-4 w-4" />
-                Создать товар
-              </Button>
-            </Link>
-          </CardFooter>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm font-medium">Добавить категорию</CardTitle>
-            <Plus className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="pb-2">
+            <CardTitle>Blog Posts</CardTitle>
           </CardHeader>
-          <CardContent className="pt-4">
-            <p className="text-xs text-muted-foreground">Создать новую категорию товаров</p>
+          <CardContent>
+            <p className="text-3xl font-bold">{postsCount}</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              <a href="/admin/blog/posts" className="text-blue-600 hover:underline">
+                Manage Posts
+              </a>
+            </p>
           </CardContent>
-          <CardFooter>
-            <Link href="/admin/categories/new" className="w-full">
-              <Button className="w-full">
-                <Tag className="mr-2 h-4 w-4" />
-                Создать категорию
-              </Button>
-            </Link>
-          </CardFooter>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm font-medium">Добавить раскраску</CardTitle>
-            <Plus className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="pb-2">
+            <CardTitle>Categories</CardTitle>
           </CardHeader>
-          <CardContent className="pt-4">
-            <p className="text-xs text-muted-foreground">Загрузить новую страницу раскраски</p>
+          <CardContent>
+            <p className="text-3xl font-bold">{categoriesCount}</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              <a href="/admin/blog/categories" className="text-blue-600 hover:underline">
+                Manage Categories
+              </a>
+            </p>
           </CardContent>
-          <CardFooter>
-            <Link href="/admin/coloring-pages/new" className="w-full">
-              <Button className="w-full">
-                <ImageIcon className="mr-2 h-4 w-4" />
-                Создать раскраску
-              </Button>
-            </Link>
-          </CardFooter>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm font-medium">Управление блогом</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="pb-2">
+            <CardTitle>Tags</CardTitle>
           </CardHeader>
-          <CardContent className="pt-4">
-            <p className="text-xs text-muted-foreground">Создать и редактировать записи блога</p>
+          <CardContent>
+            <p className="text-3xl font-bold">{tagsCount}</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              <a href="/admin/blog/tags" className="text-blue-600 hover:underline">
+                Manage Tags
+              </a>
+            </p>
           </CardContent>
-          <CardFooter>
-            <Link href="/admin/blog" className="w-full">
-              <Button className="w-full" variant="outline">
-                <FileText className="mr-2 h-4 w-4" />
-                Перейти в блог
-              </Button>
-            </Link>
-          </CardFooter>
         </Card>
       </div>
     </div>
