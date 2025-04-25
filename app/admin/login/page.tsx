@@ -11,7 +11,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Palette } from "lucide-react"
 
-export default function LoginPage() {
+// Проверяем и удаляем любые экспорты метаданных
+// Удаляем импорт generateMetadata или Metadata, если они есть
+
+export default function AdminLoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)

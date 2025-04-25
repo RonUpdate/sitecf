@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { getSupabaseClient } from "@/lib/supabase-client"
 import Link from "next/link"
 import { Loader2 } from "lucide-react"
+// Удаляем импорт generateMetadata или Metadata, если они есть
 
 export default function CreateTablesPage() {
   const [loading, setLoading] = useState(false)

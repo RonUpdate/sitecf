@@ -1,13 +1,14 @@
 import { notFound } from "next/navigation"
 import { UnifiedProductForm } from "@/components/unified-product-form"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
+// Удаляем импорт generateMetadata или Metadata, если они есть
 
 export default async function EditProductPage({
   params,
 }: {
   params: { id: string }
 }) {
-  const supabase = await createServerSupabaseClient()
+  const supabase = createServerSupabaseClient()
 
   const { data: product, error } = await supabase.from("products").select("*").eq("id", params.id).single()
 

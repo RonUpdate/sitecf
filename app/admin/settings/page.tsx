@@ -11,6 +11,9 @@ import { AlertCircle, Check, Upload } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { getSupabaseClient } from "@/lib/supabase-client"
 
+// Проверяем и удаляем любые экспорты метаданных
+// Удаляем импорт generateMetadata или Metadata, если они есть
+
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)

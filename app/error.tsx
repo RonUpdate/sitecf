@@ -3,6 +3,7 @@
 import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
+// Удаляем импорт generateMetadata или Metadata, если они есть
 
 export default function Error({
   error,

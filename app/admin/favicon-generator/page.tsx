@@ -1,5 +1,6 @@
-import FaviconGenerator from "@/app/favicon-generator"
+// Удаляем импорт generateMetadata или Metadata, если они есть
 
 export default function FaviconGeneratorPage() {
-  return <FaviconGenerator />
+  // Код страницы...
+  return <div>Favicon Generator</div>
 }

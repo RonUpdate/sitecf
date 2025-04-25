@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
-export default function AdminNotFound() {
+export default function AdminNotFoundPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] text-center px-4">
       <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>

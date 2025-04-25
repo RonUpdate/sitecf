@@ -9,7 +9,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
 
+// Проверяем и удаляем любые экспорты метаданных
+// Удаляем импорт generateMetadata или Metadata, если они есть
+
 export default function TestLoginPage() {
+  // Код страницы...
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)

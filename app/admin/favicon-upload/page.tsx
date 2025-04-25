@@ -6,6 +6,10 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { getSupabaseClient } from "@/lib/supabase-client"
 
+// Проверяем и удаляем любые экспорты метаданных
+// Удаляем импорт generateMetadata или Metadata, если они есть
+// import React from "react" // Removed duplicate import
+
 export default function FaviconUploadPage() {
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)

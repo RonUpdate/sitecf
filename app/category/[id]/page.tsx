@@ -1,6 +1,6 @@
 // Удаляем импорт generateMetadata или Metadata, если они есть
 
-export default function ForbiddenPage() {
+export default function CategoryPage({ params }: { params: { id: string } }) {
   // Код страницы...
-  return <div>Forbidden</div>
+  return <div>Category: {params.id}</div>
 }

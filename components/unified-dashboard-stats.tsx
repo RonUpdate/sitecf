@@ -74,7 +74,7 @@ export function UnifiedDashboardStats() {
       <div className="grid gap-4 md:grid-cols-4">
         {[...Array(4)].map((_, i) => (
           <Card key={i}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Загрузка...</CardTitle>
               <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
             </CardHeader>
@@ -99,7 +99,7 @@ export function UnifiedDashboardStats() {
   return (
     <div className="grid gap-4 md:grid-cols-4">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Всего категорий</CardTitle>
           <Layers className="w-4 h-4 text-gray-500 dark:text-gray-400" />
         </CardHeader>
@@ -109,7 +109,7 @@ export function UnifiedDashboardStats() {
       </Card>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Товары</CardTitle>
           <Package className="w-4 h-4 text-gray-500 dark:text-gray-400" />
         </CardHeader>
@@ -119,7 +119,7 @@ export function UnifiedDashboardStats() {
       </Card>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Страницы раскраски</CardTitle>
           <FileImage className="w-4 h-4 text-gray-500 dark:text-gray-400" />
         </CardHeader>
@@ -129,7 +129,7 @@ export function UnifiedDashboardStats() {
       </Card>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Всего загрузок</CardTitle>
           <Download className="w-4 h-4 text-gray-500 dark:text-gray-400" />
         </CardHeader>

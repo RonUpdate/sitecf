@@ -10,9 +10,10 @@ import { Plus } from "lucide-react"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import type { Database } from "@/types/supabase"
 
-export default function CategoriesPage({ searchParams }: { searchParams: { query?: string } }) {
+export default function CategoriesPage() {
   const [categories, setCategories] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [searchParams, setSearchParams] = useState<{ query?: string }>({})
 
   useEffect(() => {
     async function fetchCategories() {
@@ -54,7 +55,9 @@ export default function CategoriesPage({ searchParams }: { searchParams: { query
       <AdminFilterBar
         title="Категории"
         sortOptions={sortOptions}
-        onSearch={(query) => {}}
+        onSearch={(query) => {
+          setSearchParams({ query })
+        }}
         onFilter={(filters) => {}}
         onSort={(sort) => {}}
       />

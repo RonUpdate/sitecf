@@ -10,7 +10,7 @@ import { Plus } from "lucide-react"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import type { Database } from "@/types/supabase"
 
-export default function ColoringPagesPage({ searchParams }: { searchParams: { query?: string } }) {
+export default function ColoringPagesPage() {
   const [categories, setCategories] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 

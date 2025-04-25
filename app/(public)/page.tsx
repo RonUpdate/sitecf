@@ -7,7 +7,7 @@ import Link from "next/link"
 
 export const dynamic = "force-dynamic"
 
-export default async function Home() {
+export default async function HomePage() {
   const supabase = await createServerSupabaseClient()
 
   // Check if we have any featured coloring pages

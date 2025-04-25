@@ -1,1 +1,5 @@
-export const dynamic = "force-dynamic" // Changed from 'force_dynamic' to 'force-dynamic'
+// Удаляем любые экспорты метаданных
+export const pageConfig = {
+  title: "Blog Categories",
+  description: "Manage blog categories",
+}

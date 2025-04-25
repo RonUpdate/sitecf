@@ -1,10 +1,6 @@
-import { BlogCategoriesForm } from "@/components/blog-categories-form"
+// Удаляем импорт generateMetadata или Metadata, если они есть
 
 export default function BlogCategoriesPage() {
-  return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6">Категории блога</h1>
-      <BlogCategoriesForm />
-    </div>
-  )
+  // Код страницы...
+  return <div>Blog Categories</div>
 }

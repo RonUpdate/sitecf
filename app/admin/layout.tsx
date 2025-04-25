@@ -10,7 +10,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <AdminSidebar />
       <div className="flex-1 flex flex-col">
         <NavigationProgress />
-        <main className="flex-1">
+        <main className="flex-1 p-6">
           <AutoSessionRefresh />
           <SessionExpiryNotification />
           {children}

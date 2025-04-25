@@ -1,6 +1,6 @@
 // Удаляем импорт generateMetadata или Metadata, если они есть
 
-export default function ForbiddenPage() {
+export default function SearchPage() {
   // Код страницы...
-  return <div>Forbidden</div>
+  return <div>Search Results</div>
 }

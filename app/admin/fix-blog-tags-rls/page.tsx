@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { fixBlogTagsRLS, checkRLSStatus } from "./actions"
 import logger from "@/lib/logger"
 
-export default async function FixBlogTagsRLSPage() {
+export default async function FixBlogTagsRlsPage() {
   const supabase = await createServerSupabaseClient()
 
   // Проверяем текущий статус RLS для таблицы blog_tags
