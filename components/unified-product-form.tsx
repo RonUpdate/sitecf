@@ -93,6 +93,7 @@ export function UnifiedProductForm({ item, type, backUrl, backLabel, successUrl 
   const [fetchingCategories, setFetchingCategories] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false)
+  const [formSubmitted, setFormSubmitted] = useState(false)
 
   const router = useRouter()
   const supabase = getSupabaseClient()
@@ -178,6 +179,13 @@ export function UnifiedProductForm({ item, type, backUrl, backLabel, successUrl 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Prevent multiple submissions
+    if (formSubmitted || loading) {
+      return
+    }
+
+    setFormSubmitted(true)
     setLoading(true)
     setError(null)
 
@@ -237,7 +245,7 @@ export function UnifiedProductForm({ item, type, backUrl, backLabel, successUrl 
           stock_quantity: stockQuantity ? Number.parseInt(stockQuantity) : 0,
           is_featured: isFeatured,
           category_id: categoryId || null,
-          image_url: finalImageUrl,
+          image_url: finalImageUrl || null, // Ensure it's null if empty
         }
       } else {
         itemData = {
@@ -249,8 +257,8 @@ export function UnifiedProductForm({ item, type, backUrl, backLabel, successUrl 
           age_group: ageGroup,
           is_featured: isFeatured,
           category_id: categoryId || null,
-          image_url: finalImageUrl,
-          thumbnail_url: finalThumbnailUrl || finalImageUrl, // Use image URL as thumbnail if no thumbnail
+          image_url: finalImageUrl || null, // Ensure it's null if empty
+          thumbnail_url: finalThumbnailUrl || finalImageUrl || null, // Use image URL as thumbnail if no thumbnail
         }
       }
 
@@ -277,25 +285,7 @@ export function UnifiedProductForm({ item, type, backUrl, backLabel, successUrl 
         })
       }
 
-      // Show success notification
-      const successToast = document.createElement("div")
-      successToast.className =
-        "fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50 flex items-center shadow-lg"
-      successToast.innerHTML = `
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-        </svg>
-        <span><strong>Успешно!</strong> ${isProduct ? "Товар" : "Страница раскраски"} ${isEditing ? "обновлен(а)" : "создан(а)"}.</span>
-      `
-      document.body.appendChild(successToast)
-
-      // Remove the notification after 3 seconds
-      setTimeout(() => {
-        if (document.body.contains(successToast)) {
-          document.body.removeChild(successToast)
-        }
-      }, 3000)
-
+      // Redirect after successful submission
       router.push(successUrl)
       router.refresh()
     } catch (error: any) {
@@ -303,16 +293,27 @@ export function UnifiedProductForm({ item, type, backUrl, backLabel, successUrl 
       setError(error.message)
       toast({
         title: "Ошибка",
-        description: `Не удалось сохранить ${isProduct ? "товар" : "страницу"}. Пожалуйста, попробуйте снова.`,
+        description: `Не удалось сохранить ${isProduct ? "товар" : "страницу"}. ${error.message}`,
         variant: "destructive",
       })
+      setFormSubmitted(false) // Allow resubmission after error
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div>
+    <div className="relative">
+      {loading && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-lg font-medium">Сохранение...</p>
+            <p className="text-sm text-muted-foreground mt-2">Пожалуйста, не закрывайте страницу</p>
+          </div>
+        </div>
+      )}
+
       <Link href={backUrl} className="flex items-center text-sm mb-6">
         <ArrowLeft className="mr-2 h-4 w-4" />
         {backLabel}
@@ -547,7 +548,7 @@ export function UnifiedProductForm({ item, type, backUrl, backLabel, successUrl 
               Отмена
             </Button>
           </Link>
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={loading || formSubmitted}>
             {loading
               ? "Сохранение..."
               : isEditing
