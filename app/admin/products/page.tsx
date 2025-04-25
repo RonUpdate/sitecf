@@ -1,15 +1,16 @@
 "use client"
 
 import { Suspense } from "react"
-import { createServerSupabaseClient } from "@/lib/supabase-server"
 import { UnifiedItemTable } from "@/components/unified-item-table"
 import { AdminFilterBar } from "@/components/admin-filter-bar"
 import { Skeleton } from "@/components/ui/skeleton"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import type { Database } from "@/types/supabase"
 
 export const dynamic = "force-dynamic"
 
 export default async function ProductsPage({ searchParams }: { searchParams: { query?: string } }) {
-  const supabase = await createServerSupabaseClient()
+  const supabase = createClientComponentClient<Database>()
 
   // Fetch all products with category information
   let query = supabase

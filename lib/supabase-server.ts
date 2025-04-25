@@ -1,3 +1,4 @@
+// Этот файл должен использоваться только в серверных компонентах!
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import type { Database } from "@/types/supabase"
