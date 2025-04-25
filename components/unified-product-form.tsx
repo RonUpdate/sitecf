@@ -26,11 +26,10 @@ type Category = {
 type ProductBase = {
   id: string
   name?: string
-  title?: string
   description: string
   price: number
-  image_url: string
-  category_id: string
+  image_url: string | null
+  category_id: string | null
   slug: string
   is_featured: boolean
 }

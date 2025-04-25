@@ -3,6 +3,8 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
+import { cookies } from "next/headers"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -10,19 +12,54 @@ const inter = Inter({
   preload: true,
 })
 
-// Use a simple static metadata export instead of the dynamic function
-// that was causing issues
-export const metadata: Metadata = {
-  title: "Art Market - Premium Coloring Pages",
-  description: "Discover high-quality coloring pages for all ages",
-  manifest: "/manifest.json",
-  icons: {
-    icon: "https://uenczyfmsqiafcjrlial.supabase.co/storage/v1/object/public/favicons//watercolor-sun-transparent.ico",
-    shortcut:
-      "https://uenczyfmsqiafcjrlial.supabase.co/storage/v1/object/public/favicons//watercolor-sun-transparent.ico",
-    apple: "https://uenczyfmsqiafcjrlial.supabase.co/storage/v1/object/public/favicons//watercolor-sun-transparent.ico",
-  },
-    generator: 'v0.dev'
+// Используем динамическую генерацию метаданных для получения favicon из настроек
+export async function generateMetadata(): Promise<Metadata> {
+  // Значения по умолчанию
+  let faviconUrl =
+    "https://uenczyfmsqiafcjrlial.supabase.co/storage/v1/object/public/favicons//watercolor-sun-transparent.ico"
+  let siteName = "Art Market - Premium Coloring Pages"
+  let siteDescription = "Discover high-quality coloring pages for all ages"
+
+  try {
+    const supabase = createServerComponentClient({ cookies })
+    const { data: settingsData } = await supabase.from("site_settings").select("*")
+
+    if (settingsData && settingsData.length > 0) {
+      const settings = settingsData.reduce(
+        (acc, item) => {
+          acc[item.key] = item.value
+          return acc
+        },
+        {} as Record<string, string>,
+      )
+
+      if (settings.favicon_url) {
+        faviconUrl = settings.favicon_url
+      }
+
+      if (settings.site_name) {
+        siteName = settings.site_name
+      }
+
+      if (settings.site_description) {
+        siteDescription = settings.site_description
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching site settings:", error)
+  }
+
+  return {
+    title: siteName,
+    description: siteDescription,
+    manifest: "/manifest.json",
+    authors: [{ name: "Sonya Kern", url: "mailto:sonyakern605@gmail.com" }],
+    icons: {
+      icon: faviconUrl,
+      shortcut: faviconUrl,
+      apple: faviconUrl,
+    },
+  }
 }
 
 export default function RootLayout({
@@ -43,3 +80,7 @@ export default function RootLayout({
     </html>
   )
 }
+
+export const metadata = {
+      generator: 'v0.dev'
+    };
