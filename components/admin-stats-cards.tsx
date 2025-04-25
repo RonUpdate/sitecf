@@ -1,9 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import type { Database } from "@/types/supabase"
 import { Skeleton } from "@/components/ui/skeleton"
 import { FileText, Package, ShoppingCart, Users } from "lucide-react"
 
@@ -14,20 +13,34 @@ export function AdminStatsCards() {
   useEffect(() => {
     async function fetchStats() {
       try {
-        const supabase = createClientComponentClient<Database>()
-        const { data } = await supabase.from("admin_stats").select("*").single()
-        setStats(
-          data || {
-            total_products: 0,
-            total_categories: 0,
-            total_orders: 0,
-            total_users: 0,
-            recent_sales: [],
-            popular_categories: [],
-          },
-        )
+        const supabase = createClientComponentClient()
+
+        // Вместо запроса к несуществующей таблице admin_stats
+        // получаем данные из существующих таблиц
+        const { count: productsCount } = await supabase.from("products").select("*", { count: "exact", head: true })
+
+        const { count: categoriesCount } = await supabase.from("categories").select("*", { count: "exact", head: true })
+
+        const { count: coloringPagesCount } = await supabase
+          .from("coloring_pages")
+          .select("*", { count: "exact", head: true })
+
+        // Создаем объект с данными
+        setStats({
+          total_products: productsCount || 0,
+          total_categories: categoriesCount || 0,
+          total_orders: 0, // Заглушка, если нет таблицы заказов
+          total_users: 0, // Заглушка, если нет таблицы пользователей
+        })
       } catch (error) {
         console.error("Error fetching stats:", error)
+        // Устанавливаем заглушку при ошибке
+        setStats({
+          total_products: 0,
+          total_categories: 0,
+          total_orders: 0,
+          total_users: 0,
+        })
       } finally {
         setLoading(false)
       }

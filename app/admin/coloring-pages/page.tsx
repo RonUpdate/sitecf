@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { AdminFilterBar } from "@/components/admin-filter-bar"
 import { ColoringPagesTable } from "@/components/coloring-pages-table"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -12,6 +12,7 @@ import type { Database } from "@/types/supabase"
 
 export default function ColoringPagesPage({ searchParams }: { searchParams: { query?: string } }) {
   const [categories, setCategories] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function fetchCategories() {
@@ -25,6 +26,7 @@ export default function ColoringPagesPage({ searchParams }: { searchParams: { qu
         .catch(() => ({ data: [] }))
 
       setCategories(data || [])
+      setLoading(false)
     }
 
     fetchCategories()
@@ -92,9 +94,7 @@ export default function ColoringPagesPage({ searchParams }: { searchParams: { qu
         onSort={(sort) => {}}
       />
 
-      <Suspense fallback={<Skeleton className="h-[500px] w-full" />}>
-        <ColoringPagesTable />
-      </Suspense>
+      {loading ? <Skeleton className="h-[500px] w-full" /> : <ColoringPagesTable />}
     </div>
   )
 }

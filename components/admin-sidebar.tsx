@@ -1,133 +1,181 @@
 "use client"
 
-import type React from "react"
-import { useState } from "react"
-
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { FileText, Home, ImageIcon, LayoutDashboard, Package, Tag, Trash2, Users, Search } from "lucide-react"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
-import { AdminLogoutButton } from "@/components/admin-logout-button"
+import {
+  BarChart3,
+  BookOpen,
+  FileText,
+  FolderTree,
+  ImageIcon,
+  LayoutDashboard,
+  Search,
+  Settings,
+  ShoppingCart,
+  User,
+  Users,
+} from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { AdminLogoutButton } from "@/components/admin-logout-button"
+import { Package2 } from "lucide-react"
 
-interface SidebarNavProps extends React.HTMLAttributes<HTMLDivElement> {}
-
-export function AdminSidebar({ className }: SidebarNavProps) {
+export function AdminSidebar() {
   const pathname = usePathname()
-  const [searchQuery, setSearchQuery] = useState("")
 
-  const navItems = [
-    {
-      title: "Панель управления",
-      href: "/admin",
-      icon: <LayoutDashboard className="mr-2 h-4 w-4" />,
-    },
-    {
-      title: "Товары",
-      href: "/admin/products",
-      icon: <Package className="mr-2 h-4 w-4" />,
-    },
-    {
-      title: "Категории",
-      href: "/admin/categories",
-      icon: <Tag className="mr-2 h-4 w-4" />,
-    },
-    {
-      title: "Раскраски",
-      href: "/admin/coloring-pages",
-      icon: <ImageIcon className="mr-2 h-4 w-4" />,
-    },
-    {
-      title: "Блог",
-      href: "/admin/blog",
-      icon: <FileText className="mr-2 h-4 w-4" />,
-    },
-    {
-      title: "Пользователи",
-      href: "/admin/users",
-      icon: <Users className="mr-2 h-4 w-4" />,
-    },
-  ]
-
-  const utilityItems = [
-    {
-      title: "Очистка данных",
-      href: "/admin/data-cleanup",
-      icon: <Trash2 className="mr-2 h-4 w-4" />,
-    },
-    {
-      title: "Просмотр сайта",
-      href: "/",
-      icon: <Home className="mr-2 h-4 w-4" />,
-      external: true,
-    },
-  ]
+  const isActive = (path: string) => {
+    return pathname === path || pathname?.startsWith(`${path}/`)
+  }
 
   return (
-    <div className={cn("pb-12", className)}>
-      <div className="space-y-4 py-4">
-        <div className="px-4 py-2">
-          <h2 className="mb-2 px-2 text-xl font-semibold tracking-tight">Админ-панель</h2>
+    <div className="flex h-screen flex-col border-r bg-muted/40">
+      <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
+        <Link href="/admin" className="flex items-center gap-2 font-semibold">
+          <Package2 className="h-6 w-6" />
+          <span className="">Admin Panel</span>
+        </Link>
+      </div>
+      <div className="flex-1 overflow-auto py-2">
+        <nav className="grid items-start px-2 text-sm font-medium">
+          <Link
+            href="/admin"
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
+              isActive("/admin") && !isActive("/admin/blog") && !isActive("/admin/products")
+                ? "bg-accent text-accent-foreground"
+                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+            )}
+          >
+            <LayoutDashboard className="h-4 w-4" />
+            Dashboard
+          </Link>
+          <Link
+            href="/admin/products"
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
+              isActive("/admin/products")
+                ? "bg-accent text-accent-foreground"
+                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+            )}
+          >
+            <ShoppingCart className="h-4 w-4" />
+            Products
+          </Link>
+          <Link
+            href="/admin/categories"
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
+              isActive("/admin/categories")
+                ? "bg-accent text-accent-foreground"
+                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+            )}
+          >
+            <FolderTree className="h-4 w-4" />
+            Categories
+          </Link>
+          <Link
+            href="/admin/coloring-pages"
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
+              isActive("/admin/coloring-pages")
+                ? "bg-accent text-accent-foreground"
+                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+            )}
+          >
+            <ImageIcon className="h-4 w-4" />
+            Coloring Pages
+          </Link>
+          <Link
+            href="/admin/blog"
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
+              isActive("/admin/blog")
+                ? "bg-accent text-accent-foreground"
+                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+            )}
+          >
+            <BookOpen className="h-4 w-4" />
+            Blog
+          </Link>
 
-          {/* Навигационные пункты перемещены выше поиска */}
-          <div className="space-y-1 mb-4">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
-                  pathname === item.href ? "bg-accent text-accent-foreground" : "transparent",
-                )}
-              >
-                {item.icon}
-                {item.title}
-              </Link>
-            ))}
+          <div className="mt-4 mb-4">
+            <p className="mb-2 px-4 text-xs font-semibold uppercase tracking-tight text-muted-foreground">Utilities</p>
+            <Link
+              href="/admin/settings"
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
+                isActive("/admin/settings")
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+              )}
+            >
+              <Settings className="h-4 w-4" />
+              Settings
+            </Link>
+            <Link
+              href="/admin/users"
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
+                isActive("/admin/users")
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+              )}
+            >
+              <Users className="h-4 w-4" />
+              Users
+            </Link>
+            <Link
+              href="/admin/profile"
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
+                isActive("/admin/profile")
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+              )}
+            >
+              <User className="h-4 w-4" />
+              Profile
+            </Link>
+            <Link
+              href="/admin/auth-logs"
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
+                isActive("/admin/auth-logs")
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+              )}
+            >
+              <FileText className="h-4 w-4" />
+              Auth Logs
+            </Link>
+            <Link
+              href="/admin/data-cleanup"
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
+                isActive("/admin/data-cleanup")
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+              )}
+            >
+              <BarChart3 className="h-4 w-4" />
+              Data Cleanup
+            </Link>
           </div>
+        </nav>
 
-          {/* Поиск сделан менее заметным */}
-          <div className="px-2 mb-2">
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-gray-400" />
-              <Input
-                placeholder="Поиск..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-7 h-8 text-xs bg-transparent border-gray-200"
-              />
-            </div>
+        <div className="px-3 py-2">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-3 w-3 text-gray-400" />
+            <Input
+              type="search"
+              placeholder="Search..."
+              className="w-full bg-transparent pl-8 text-xs h-8 border-gray-200"
+            />
           </div>
         </div>
-        <Separator />
-        <div className="px-4 py-2">
-          <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">Утилиты</h2>
-          <ScrollArea className="h-[300px]">
-            <div className="space-y-1">
-              {utilityItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  target={item.external ? "_blank" : undefined}
-                  rel={item.external ? "noopener noreferrer" : undefined}
-                  className={cn(
-                    "flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
-                    pathname === item.href ? "bg-accent text-accent-foreground" : "transparent",
-                  )}
-                >
-                  {item.icon}
-                  {item.title}
-                </Link>
-              ))}
-            </div>
-          </ScrollArea>
-        </div>
-        <Separator />
-        <div className="px-4 py-2">
-          <AdminLogoutButton />
-        </div>
+      </div>
+      <div className="mt-auto p-4">
+        <AdminLogoutButton />
       </div>
     </div>
   )

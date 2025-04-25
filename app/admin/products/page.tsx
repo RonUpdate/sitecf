@@ -1,37 +1,49 @@
 "use client"
 
-import { Suspense } from "react"
+import { useEffect, useState } from "react"
 import { UnifiedItemTable } from "@/components/unified-item-table"
 import { AdminFilterBar } from "@/components/admin-filter-bar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import type { Database } from "@/types/supabase"
 
-export const dynamic = "force-dynamic"
+export default function ProductsPage({ searchParams }: { searchParams: { query?: string } }) {
+  const [products, setProducts] = useState<any[]>([])
+  const [categories, setCategories] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-export default async function ProductsPage({ searchParams }: { searchParams: { query?: string } }) {
-  const supabase = createClientComponentClient<Database>()
+  useEffect(() => {
+    async function fetchData() {
+      const supabase = createClientComponentClient<Database>()
 
-  // Fetch all products with category information
-  let query = supabase
-    .from("products")
-    .select(`
-      *,
-      categories:category_id (
-        name
-      )
-    `)
-    .order("created_at", { ascending: false })
+      // Fetch all products with category information
+      let query = supabase
+        .from("products")
+        .select(`
+          *,
+          categories:category_id (
+            name
+          )
+        `)
+        .order("created_at", { ascending: false })
 
-  // Apply search if provided
-  if (searchParams.query) {
-    query = query.ilike("name", `%${searchParams.query}%`)
-  }
+      // Apply search if provided
+      if (searchParams.query) {
+        query = query.ilike("name", `%${searchParams.query}%`)
+      }
 
-  const { data: products } = await query
+      const { data: productsData } = await query
+      setProducts(productsData || [])
 
-  // Fetch categories for filter options
-  const { data: categories } = await supabase.from("categories").select("id, name").order("name")
+      // Fetch categories for filter options
+      const { data: categoriesData } = await supabase.from("categories").select("id, name").order("name")
+      setCategories(categoriesData || [])
+
+      setLoading(false)
+    }
+
+    fetchData()
+  }, [searchParams.query])
 
   const filterOptions = [
     {
@@ -73,14 +85,16 @@ export default async function ProductsPage({ searchParams }: { searchParams: { q
         onSort={(sort) => {}}
       />
 
-      <Suspense fallback={<Skeleton className="h-[500px] w-full" />}>
+      {loading ? (
+        <Skeleton className="h-[500px] w-full" />
+      ) : (
         <UnifiedItemTable
           type="product"
-          initialItems={products || []}
+          initialItems={products}
           addNewUrl="/admin/products/new"
           addNewLabel="Добавить товар"
         />
-      </Suspense>
+      )}
     </div>
   )
 }
