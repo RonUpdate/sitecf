@@ -29,6 +29,7 @@ export function useSessionRefresh() {
       if (data.session) {
         const expiresAt = new Date(data.session.expires_at * 1000)
         setSessionExpiry(expiresAt)
+        console.log("Session retrieved successfully. Expires at:", expiresAt.toLocaleString())
 
         // Проверяем, является ли сессия долгосрочной (больше 24 часов)
         const now = new Date()
@@ -37,6 +38,7 @@ export function useSessionRefresh() {
 
         return expiresAt
       } else {
+        console.log("No session found.")
         setSessionExpiry(null)
         return null
       }
@@ -67,7 +69,18 @@ export function useSessionRefresh() {
         },
       })
 
-      if (error) throw error
+      if (error) {
+        console.error("Error refreshing session:", error.message)
+        // Handle invalid refresh token error
+        if (error.message.includes("Invalid Refresh Token")) {
+          console.warn("Invalid refresh token. Redirecting to login.")
+          setError("Invalid session. Please log in again.")
+          router.push("/login") // Redirect to login page
+          return false
+        }
+        setError("Не удалось обновить сессию")
+        return false
+      }
 
       if (data.session) {
         const newExpiresAt = new Date(data.session.expires_at * 1000)

@@ -17,10 +17,14 @@ export default function LoginPage() {
     async function checkSession() {
       try {
         const { data } = await supabase.auth.getSession()
+        console.log("Session data:", data) // Add this line
 
         if (data.session) {
           setHasSession(true)
-          router.replace("/admin")
+          // Only redirect if not coming from middleware
+          if (!searchParams.has("from")) {
+            router.replace("/admin")
+          }
         } else {
           setLoading(false)
         }
@@ -31,7 +35,7 @@ export default function LoginPage() {
     }
 
     checkSession()
-  }, [router, supabase.auth])
+  }, [router, supabase.auth, searchParams])
 
   if (loading) {
     return (
