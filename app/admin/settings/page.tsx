@@ -73,8 +73,9 @@ export default function SettingsPage() {
 
       setSuccess(`Setting "${key}" updated successfully`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred")
-      console.error(err)
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred"
+      setError(`Error updating setting: ${errorMessage}`)
+      console.error("Settings update error:", err)
     } finally {
       setSaving(false)
     }

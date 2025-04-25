@@ -137,7 +137,7 @@ export function ServerLoginForm({ from = "/admin" }: { from?: string }) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          placeholder="sonyakern605@gmail.com"
+          placeholder="Введите почту"
           disabled={loading || !supabaseInitialized}
         />
       </div>
@@ -149,6 +149,7 @@ export function ServerLoginForm({ from = "/admin" }: { from?: string }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          placeholder="Введите пароль"
           disabled={loading || !supabaseInitialized}
         />
       </div>

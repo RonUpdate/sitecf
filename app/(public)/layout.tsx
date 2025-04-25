@@ -22,15 +22,15 @@ export default function PublicLayout({
             Art Market
           </Link>
           <div className="hidden md:flex items-center gap-4">
-            <Suspense fallback={null}>
-              <SearchForm className="max-w-xs" />
-            </Suspense>
             <Link href="/featured">
               <Button variant="ghost">Coloring Pages</Button>
             </Link>
             <Link href="/blog">
               <Button variant="ghost">Blog</Button>
             </Link>
+            <Suspense fallback={null}>
+              <SearchForm className="max-w-[180px] opacity-70 hover:opacity-100 transition-opacity" />
+            </Suspense>
           </div>
           <MobileMenu />
         </div>
