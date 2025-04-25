@@ -1,28 +1,38 @@
 "use client"
 
-import { Suspense } from "react"
-import { createServerSupabaseClient } from "@/lib/supabase-server"
+import { useEffect, useState } from "react"
 import { CategoryTable } from "@/components/category-table"
 import { AdminFilterBar } from "@/components/admin-filter-bar"
 import { Skeleton } from "@/components/ui/skeleton"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import type { Database } from "@/types/supabase"
 
-export const dynamic = "force-dynamic"
+export default function CategoriesPage({ searchParams }: { searchParams: { query?: string } }) {
+  const [categories, setCategories] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-export default async function CategoriesPage({ searchParams }: { searchParams: { query?: string } }) {
-  const supabase = await createServerSupabaseClient()
+  useEffect(() => {
+    async function fetchCategories() {
+      const supabase = createClientComponentClient<Database>()
 
-  // Build query
-  let query = supabase.from("categories").select("*").order("created_at", { ascending: false })
+      // Build query
+      let query = supabase.from("categories").select("*").order("created_at", { ascending: false })
 
-  // Apply search if provided
-  if (searchParams.query) {
-    query = query.or(`name.ilike.%${searchParams.query}%,description.ilike.%${searchParams.query}%`)
-  }
+      // Apply search if provided
+      if (searchParams.query) {
+        query = query.or(`name.ilike.%${searchParams.query}%,description.ilike.%${searchParams.query}%`)
+      }
 
-  const { data: categories } = await query
+      const { data } = await query
+      setCategories(data || [])
+      setLoading(false)
+    }
+
+    fetchCategories()
+  }, [searchParams.query])
 
   const sortOptions = [
     { id: "name", label: "Название" },
@@ -49,18 +59,18 @@ export default async function CategoriesPage({ searchParams }: { searchParams: {
         onSort={(sort) => {}}
       />
 
-      <Suspense fallback={<Skeleton className="h-[500px] w-full" />}>
-        {categories && categories.length > 0 ? (
-          <CategoryTable categories={categories} />
-        ) : (
-          <div className="text-center py-12 border rounded-lg">
-            <p className="text-gray-500 dark:text-gray-400 mb-4">Категории не найдены</p>
-            <Link href="/admin/categories/new">
-              <Button>Добавить первую категорию</Button>
-            </Link>
-          </div>
-        )}
-      </Suspense>
+      {loading ? (
+        <Skeleton className="h-[500px] w-full" />
+      ) : categories && categories.length > 0 ? (
+        <CategoryTable categories={categories} />
+      ) : (
+        <div className="text-center py-12 border rounded-lg">
+          <p className="text-gray-500 dark:text-gray-400 mb-4">Категории не найдены</p>
+          <Link href="/admin/categories/new">
+            <Button>Добавить первую категорию</Button>
+          </Link>
+        </div>
+      )}
     </div>
   )
 }

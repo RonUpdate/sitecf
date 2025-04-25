@@ -1,25 +1,34 @@
 "use client"
 
-import { Suspense } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { AdminFilterBar } from "@/components/admin-filter-bar"
 import { ColoringPagesTable } from "@/components/coloring-pages-table"
 import { Skeleton } from "@/components/ui/skeleton"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
-import { createServerSupabaseClient } from "@/lib/supabase-server"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import type { Database } from "@/types/supabase"
 
-export const dynamic = "force-dynamic"
+export default function ColoringPagesPage({ searchParams }: { searchParams: { query?: string } }) {
+  const [categories, setCategories] = useState<any[]>([])
 
-export default async function ColoringPagesPage({ searchParams }: { searchParams: { query?: string } }) {
-  const supabase = await createServerSupabaseClient()
+  useEffect(() => {
+    async function fetchCategories() {
+      const supabase = createClientComponentClient<Database>()
 
-  // Fetch categories for filter options
-  const { data: categories } = await supabase
-    .from("categories")
-    .select("id, name")
-    .order("name")
-    .catch(() => ({ data: [] }))
+      // Fetch categories for filter options
+      const { data } = await supabase
+        .from("categories")
+        .select("id, name")
+        .order("name")
+        .catch(() => ({ data: [] }))
+
+      setCategories(data || [])
+    }
+
+    fetchCategories()
+  }, [])
 
   const filterOptions = [
     {

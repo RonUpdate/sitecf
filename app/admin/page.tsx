@@ -1,12 +1,11 @@
+"use client"
 import { AdminStatsCards } from "@/components/admin-stats-cards"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { FileText, ImageIcon, Package, Plus, Tag } from "lucide-react"
 import Link from "next/link"
 
-export const dynamic = "force-dynamic"
-
-export default async function AdminDashboard() {
+export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
