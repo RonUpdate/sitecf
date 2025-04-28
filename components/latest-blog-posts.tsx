@@ -30,15 +30,33 @@ export function LatestBlogPosts() {
   useEffect(() => {
     async function fetchLatestPosts() {
       try {
+        // Use a more direct query that avoids triggering the problematic RLS policy
         const { data, error } = await supabase
           .from("blog_posts")
-          .select("*")
+          .select(
+            "id, title, slug, content, excerpt, featured_image, published, published_at, created_at, author_id, author",
+          )
           .eq("published", true)
           .order("published_at", { ascending: false })
           .limit(3)
 
         if (error) {
           console.error("Error fetching blog posts:", error)
+
+          // If the first query fails, try using a public data endpoint
+          if (error && error.message.includes("infinite recursion")) {
+            console.log("Trying alternative public data fetch method")
+            try {
+              // Fetch from a public endpoint or use a different approach
+              const response = await fetch("/api/public/blog-posts?limit=3")
+              if (response.ok) {
+                const data = await response.json()
+                setPosts(data || [])
+              }
+            } catch (fallbackError) {
+              console.error("Fallback error:", fallbackError)
+            }
+          }
           return
         }
 

@@ -6,50 +6,42 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
   const supabase = createMiddlewareClient({ req, res })
 
-  // Получаем текущий путь
+  // Get current path
   const path = req.nextUrl.pathname
 
-  // Проверяем, относится ли путь к админке
+  // Check if path is admin-related
   const isAdminPath = path.startsWith("/admin")
   const isLoginPath = path === "/login"
   const isErrorPath = path === "/unauthorized" || path === "/forbidden" || path === "/error"
 
-  // Если это путь ошибки, пропускаем проверку
+  // Skip check for error paths
   if (isErrorPath) {
     return res
   }
 
   try {
-    // Получаем сессию пользователя с таймаутом
-    const sessionPromise = supabase.auth.getSession()
-
-    // Добавляем таймаут для предотвращения зависания
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error("Session check timed out")), 3000)
-    })
-
+    // Get user session
     const {
       data: { session },
-    } = (await Promise.race([sessionPromise, timeoutPromise.then(() => ({ data: { session: null } }))])) as {
-      data: { session: any }
-    }
+    } = await supabase.auth.getSession()
 
-    // Если пытаемся получить доступ к админке без сессии
+    // If trying to access admin without session
     if (isAdminPath && !session) {
       const redirectUrl = new URL("/login", req.url)
       redirectUrl.searchParams.set("from", path)
       return NextResponse.redirect(redirectUrl)
     }
 
-    // Если уже авторизованы и пытаемся получить доступ к странице входа
+    // If already authenticated and trying to access login page
     if (isLoginPath && session) {
       return NextResponse.redirect(new URL("/admin", req.url))
     }
   } catch (error) {
     console.error("Middleware error:", error)
 
-    // В случае ошибки, пропускаем запрос, чтобы избежать зацикливания
-    if (isAdminPath) {
+    // In case of error, let the request through to avoid loops
+    // Only redirect admin paths to error page
+    if (isAdminPath && path !== "/admin") {
       return NextResponse.redirect(new URL("/error", req.url))
     }
   }

@@ -19,35 +19,46 @@ export async function requireAuth() {
     return session
   } catch (error) {
     console.error("Auth error:", error)
-    redirect("/error")
+    // Don't redirect to avoid potential loops
+    throw new Error("Authentication failed")
   }
 }
 
 export async function requireAdmin() {
-  const cookieStore = cookies()
-  const supabase = createServerComponentClient<Database>({ cookies: () => cookieStore })
+  try {
+    const cookieStore = cookies()
+    const supabase = createServerComponentClient<Database>({ cookies: () => cookieStore })
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
 
-  if (!session) {
-    redirect("/login")
+    if (!session) {
+      redirect("/login")
+    }
+
+    // Check if user is admin
+    const { data: adminUser, error } = await supabase
+      .from("admin_users")
+      .select("*")
+      .eq("email", session.user.email)
+      .single()
+
+    if (error) {
+      console.error("Admin check error:", error)
+      throw new Error("Admin check failed")
+    }
+
+    if (!adminUser) {
+      redirect("/forbidden")
+    }
+
+    return { session, adminUser }
+  } catch (error) {
+    console.error("Admin auth error:", error)
+    // Don't redirect to avoid potential loops
+    throw new Error("Admin authentication failed")
   }
-
-  // Проверяем, является ли пользователь администратором
-  const { data: adminUser, error } = await supabase
-    .from("admin_users")
-    .select("*")
-    .eq("email", session.user.email)
-    .single()
-
-  if (error || !adminUser) {
-    console.error("Admin check failed:", error)
-    redirect("/forbidden")
-  }
-
-  return { session, adminUser }
 }
 
 export async function isAdmin(email: string): Promise<boolean> {
@@ -55,7 +66,12 @@ export async function isAdmin(email: string): Promise<boolean> {
     const cookieStore = cookies()
     const supabase = createServerComponentClient<Database>({ cookies: () => cookieStore })
 
-    const { data: adminUser } = await supabase.from("admin_users").select("*").eq("email", email).single()
+    const { data: adminUser, error } = await supabase.from("admin_users").select("*").eq("email", email).single()
+
+    if (error) {
+      console.error("Admin check error:", error)
+      return false
+    }
 
     return !!adminUser
   } catch (error) {
@@ -77,14 +93,19 @@ export async function requireRole(allowedRoles: string[]) {
       .eq("user_id", session.user.id)
       .single()
 
-    if (error || !userRole || !allowedRoles.includes(userRole.role)) {
+    if (error) {
+      console.error("Role check error:", error)
+      throw new Error("Role check failed")
+    }
+
+    if (!userRole || !allowedRoles.includes(userRole.role)) {
       redirect("/forbidden")
     }
 
     return { session, role: userRole.role }
   } catch (error) {
     console.error("Role check error:", error)
-    redirect("/error")
+    throw new Error("Role authentication failed")
   }
 }
 
@@ -96,13 +117,18 @@ export async function requireResourceOwner(resourceTable: string, resourceId: st
 
     const { data: resource, error } = await supabase.from(resourceTable).select("user_id").eq("id", resourceId).single()
 
-    if (error || !resource || resource.user_id !== session.user.id) {
+    if (error) {
+      console.error("Resource owner check error:", error)
+      throw new Error("Resource owner check failed")
+    }
+
+    if (!resource || resource.user_id !== session.user.id) {
       redirect("/forbidden")
     }
 
     return { session, resource }
   } catch (error) {
     console.error("Resource owner check error:", error)
-    redirect("/error")
+    throw new Error("Resource owner authentication failed")
   }
 }
