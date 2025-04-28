@@ -4,7 +4,11 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 
-const inter = Inter({ subsets: ["latin"] })
+// Use Next.js font optimization
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+})
 
 export const metadata: Metadata = {
   title: "Art Market - Beautiful Coloring Pages for Everyone",
@@ -41,12 +45,29 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="ru" className={inter.className} suppressHydrationWarning>
       <head>
+        {/* Manifest and theme color */}
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#9333ea" />
+
+        {/* Proper font preloading */}
+        <link
+          rel="preload"
+          href="/fonts/26a46d62cd723877-s.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          href="/fonts/6d93bde91c0c2823-s.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
       </head>
-      <body className={inter.className}>
+      <body>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           {children}
         </ThemeProvider>

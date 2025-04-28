@@ -3,9 +3,8 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next()
-
   try {
+    const res = NextResponse.next()
     const supabase = createMiddlewareClient({ req, res })
 
     // Получаем текущий путь
@@ -47,15 +46,16 @@ export async function middleware(req: NextRequest) {
     if (isLoginPath && session) {
       return NextResponse.redirect(new URL("/admin", req.url))
     }
+
+    return res
   } catch (error) {
     console.error("Middleware error:", error)
     // For admin paths, redirect to error page on exception
     if (req.nextUrl.pathname.startsWith("/admin")) {
       return NextResponse.redirect(new URL("/error?message=middleware_error", req.url))
     }
+    return NextResponse.next()
   }
-
-  return res
 }
 
 export const config = {

@@ -12,11 +12,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { getSupabaseClient } from "@/lib/supabase-client"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft, Upload } from "lucide-react"
 import Link from "next/link"
-import { createProduct } from "@/app/admin/products/actions"
 
 type Category = {
   id: string
@@ -51,10 +50,10 @@ export function ProductForm({ product }: { product?: Product }) {
   const [loading, setLoading] = useState(false)
   const [fetchingCategories, setFetchingCategories] = useState(true)
   const router = useRouter()
-  const supabase = getSupabaseClient()
+  const supabase = createClientComponentClient()
   const { toast } = useToast()
   const [message, setMessage] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
 
   // Add a state variable to track if the slug has been manually edited
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false)
@@ -135,8 +134,15 @@ export function ProductForm({ product }: { product?: Product }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setError("")
+    setMessage("")
 
     try {
+      // Validate required fields
+      if (!name) throw new Error("Название товара обязательно")
+      if (!slug) throw new Error("URL-slug обязателен")
+      if (!price || isNaN(Number(price))) throw new Error("Укажите корректную цену")
+
       let finalImageUrl = imageUrl
 
       // Upload image if a new one was selected
@@ -159,16 +165,23 @@ export function ProductForm({ product }: { product?: Product }) {
         finalImageUrl = publicUrl
       }
 
+      // If no image was uploaded and no URL was provided, use a placeholder
+      if (!finalImageUrl) {
+        finalImageUrl = `/placeholder.svg?height=400&width=400&query=product`
+      }
+
       const productData = {
         name,
         description,
         price: Number.parseFloat(price),
         slug,
-        stock_quantity: Number.parseInt(stockQuantity),
+        stock_quantity: Number.parseInt(stockQuantity || "0"),
         is_featured: isFeatured,
         category_id: categoryId || null,
         image_url: finalImageUrl,
       }
+
+      console.log("Sending product data:", productData)
 
       // Create or update the product
       if (isEditing) {
@@ -176,28 +189,34 @@ export function ProductForm({ product }: { product?: Product }) {
 
         if (error) throw error
 
+        setMessage("Товар успешно обновлен!")
         toast({
-          title: "Product updated",
-          description: "The product has been successfully updated.",
+          title: "Товар обновлен",
+          description: "Товар успешно обновлен.",
         })
       } else {
-        const { error } = await supabase.from("products").insert(productData)
+        const { error, data } = await supabase.from("products").insert(productData).select()
 
         if (error) throw error
 
+        setMessage("Товар успешно создан!")
         toast({
-          title: "Product created",
-          description: "The product has been successfully created.",
+          title: "Товар создан",
+          description: "Товар успешно создан.",
         })
       }
 
-      router.push("/admin/products")
-      router.refresh()
-    } catch (error) {
-      console.error("Error saving product:", error)
+      // Wait a moment before redirecting
+      setTimeout(() => {
+        router.push("/admin/products")
+        router.refresh()
+      }, 1500)
+    } catch (err: any) {
+      console.error("Error saving product:", err)
+      setError(err.message || "Произошла ошибка при сохранении товара")
       toast({
-        title: "Error",
-        description: "Failed to save the product. Please try again.",
+        title: "Ошибка",
+        description: err.message || "Не удалось сохранить товар. Пожалуйста, попробуйте снова.",
         variant: "destructive",
       })
     } finally {
@@ -205,42 +224,25 @@ export function ProductForm({ product }: { product?: Product }) {
     }
   }
 
-  async function handleSubmitNew(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setIsLoading(true)
-    const formData = new FormData(e.currentTarget)
-
-    try {
-      await createProduct(formData)
-      setMessage("Товар успешно добавлен!")
-      e.currentTarget.reset()
-    } catch (error: any) {
-      setMessage("Ошибка: " + error.message)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   return (
     <div>
       <Link href="/admin/products" className="flex items-center text-sm mb-6">
         <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to products
+        Назад к товарам
       </Link>
 
-      <form onSubmit={isEditing ? handleSubmit : handleSubmitNew} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
           <CardContent className="pt-6">
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Product Name</Label>
+                  <Label htmlFor="name">Название товара</Label>
                   <Input id="name" name="name" value={name} onChange={handleNameChange} required />
                 </div>
 
-                {/* In the JSX, update the slug input and button */}
                 <div className="space-y-2">
-                  <Label htmlFor="slug">Slug</Label>
+                  <Label htmlFor="slug">URL-slug</Label>
                   <div className="flex gap-2">
                     <Input
                       id="slug"
@@ -251,14 +253,14 @@ export function ProductForm({ product }: { product?: Product }) {
                       placeholder="url-friendly-name"
                     />
                     <Button type="button" variant="outline" onClick={regenerateSlug}>
-                      Generate
+                      Создать
                     </Button>
                   </div>
-                  <p className="text-xs text-gray-500">Used in URLs, e.g., /product/your-slug</p>
+                  <p className="text-xs text-gray-500">Используется в URL, например, /product/your-slug</p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="price">Price</Label>
+                  <Label htmlFor="price">Цена</Label>
                   <Input
                     id="price"
                     name="price"
@@ -272,7 +274,7 @@ export function ProductForm({ product }: { product?: Product }) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="stock">Stock Quantity</Label>
+                  <Label htmlFor="stock">Количество на складе</Label>
                   <Input
                     id="stock"
                     name="stock_quantity"
@@ -285,13 +287,13 @@ export function ProductForm({ product }: { product?: Product }) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Select value={categoryId} onValueChange={setCategoryId} disabled={fetchingCategories}>
+                  <Label htmlFor="category">Категория</Label>
+                  <Select value={categoryId || "none"} onValueChange={setCategoryId} disabled={fetchingCategories}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
+                      <SelectValue placeholder="Выберите категорию" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Uncategorized</SelectItem>
+                      <SelectItem value="none">Без категории</SelectItem>
                       {categories.map((category) => (
                         <SelectItem key={category.id} value={category.id}>
                           {category.name}
@@ -307,13 +309,13 @@ export function ProductForm({ product }: { product?: Product }) {
                     checked={isFeatured}
                     onCheckedChange={(checked) => setIsFeatured(checked as boolean)}
                   />
-                  <Label htmlFor="featured">Featured Product</Label>
+                  <Label htmlFor="featured">Рекомендуемый товар</Label>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">Описание</Label>
                   <Textarea
                     id="description"
                     name="description"
@@ -324,7 +326,7 @@ export function ProductForm({ product }: { product?: Product }) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="image">Product Image</Label>
+                  <Label htmlFor="image">Изображение товара</Label>
                   <div className="flex items-center gap-4">
                     {imagePreview && (
                       <div className="relative h-32 w-32 rounded overflow-hidden border">
@@ -338,7 +340,7 @@ export function ProductForm({ product }: { product?: Product }) {
                         onClick={() => document.getElementById("image-upload")?.click()}
                       >
                         <Upload className="w-4 h-4 mr-2" />
-                        Upload Image
+                        Загрузить изображение
                       </Button>
                       <Input
                         id="image-upload"
@@ -347,13 +349,13 @@ export function ProductForm({ product }: { product?: Product }) {
                         className="hidden"
                         onChange={handleImageChange}
                       />
-                      <p className="text-xs text-gray-500 mt-2">Recommended size: 800x800px</p>
+                      <p className="text-xs text-gray-500 mt-2">Рекомендуемый размер: 800x800px</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="image_url">Or use image URL</Label>
+                  <Label htmlFor="image_url">Или использовать URL изображения</Label>
                   <Input
                     id="image_url"
                     name="image_url"
@@ -371,20 +373,17 @@ export function ProductForm({ product }: { product?: Product }) {
         <div className="flex justify-end gap-4">
           <Link href="/admin/products">
             <Button type="button" variant="outline">
-              Cancel
+              Отмена
             </Button>
           </Link>
-          <Button type="submit" disabled={loading || isLoading}>
-            {loading || isLoading ? "Saving..." : isEditing ? "Update Product" : "Create Product"}
+          <Button type="submit" disabled={loading}>
+            {loading ? "Сохранение..." : isEditing ? "Обновить товар" : "Создать товар"}
           </Button>
         </div>
-        {message && (
-          <div
-            className={`p-3 rounded-md text-center ${message.includes("Ошибка") ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}
-          >
-            {message}
-          </div>
-        )}
+
+        {error && <div className="p-3 rounded-md bg-red-100 text-red-700 text-center">{error}</div>}
+
+        {message && <div className="p-3 rounded-md bg-green-100 text-green-700 text-center">{message}</div>}
       </form>
     </div>
   )
