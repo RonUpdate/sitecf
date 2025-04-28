@@ -5,7 +5,6 @@ import Link from "next/link"
 import Image from "next/image"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Calendar, User } from "lucide-react"
-import { getSupabaseClient } from "@/lib/supabase-client"
 import { Skeleton } from "@/components/ui/skeleton"
 
 type BlogPost = {
@@ -18,58 +17,32 @@ type BlogPost = {
   published: boolean
   published_at: string | null
   created_at: string
-  author_id: string | null
   author: string | null
 }
 
 export function LatestBlogPosts() {
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
-  const supabase = getSupabaseClient()
 
   useEffect(() => {
     async function fetchLatestPosts() {
       try {
-        // Use a more direct query that avoids triggering the problematic RLS policy
-        const { data, error } = await supabase
-          .from("blog_posts")
-          .select(
-            "id, title, slug, content, excerpt, featured_image, published, published_at, created_at, author_id, author",
-          )
-          .eq("published", true)
-          .order("published_at", { ascending: false })
-          .limit(3)
-
-        if (error) {
-          console.error("Error fetching blog posts:", error)
-
-          // If the first query fails, try using a public data endpoint
-          if (error && error.message.includes("infinite recursion")) {
-            console.log("Trying alternative public data fetch method")
-            try {
-              // Fetch from a public endpoint or use a different approach
-              const response = await fetch("/api/public/blog-posts?limit=3")
-              if (response.ok) {
-                const data = await response.json()
-                setPosts(data || [])
-              }
-            } catch (fallbackError) {
-              console.error("Fallback error:", fallbackError)
-            }
-          }
-          return
+        // Use the server-side API endpoint instead of direct Supabase query
+        const response = await fetch("/api/public/blog-posts?limit=3")
+        if (!response.ok) {
+          throw new Error(`Failed to fetch: ${response.status}`)
         }
-
+        const data = await response.json()
         setPosts(data || [])
       } catch (error) {
-        console.error("Error:", error)
+        console.error("Error fetching blog posts:", error)
       } finally {
         setLoading(false)
       }
     }
 
     fetchLatestPosts()
-  }, [supabase])
+  }, [])
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return ""

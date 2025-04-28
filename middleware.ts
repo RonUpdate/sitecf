@@ -25,25 +25,16 @@ export async function middleware(req: NextRequest) {
       data: { session },
     } = await supabase.auth.getSession()
 
-    // If trying to access admin without session
-    if (isAdminPath && !session) {
-      const redirectUrl = new URL("/login", req.url)
-      redirectUrl.searchParams.set("from", path)
-      return NextResponse.redirect(redirectUrl)
-    }
-
     // If already authenticated and trying to access login page
     if (isLoginPath && session) {
       return NextResponse.redirect(new URL("/admin", req.url))
     }
+
+    // For admin paths, we'll let the layout handle the auth check
+    // This prevents redirect loops and errors
   } catch (error) {
     console.error("Middleware error:", error)
-
-    // In case of error, let the request through to avoid loops
-    // Only redirect admin paths to error page
-    if (isAdminPath && path !== "/admin") {
-      return NextResponse.redirect(new URL("/error", req.url))
-    }
+    // Let the request through to be handled by the layout
   }
 
   return res

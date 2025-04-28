@@ -1,23 +1,22 @@
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
+import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
+
+// Create a Supabase client with the service role key to bypass RLS
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+  process.env.SUPABASE_SERVICE_ROLE_KEY || "",
+)
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const limit = Number.parseInt(searchParams.get("limit") || "3")
   const offset = Number.parseInt(searchParams.get("offset") || "0")
 
-  const cookieStore = cookies()
-  const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
-
   try {
-    // This query runs server-side with service role permissions
-    // which bypasses RLS policies
-    const { data, error } = await supabase
+    // This query runs with service role permissions, bypassing RLS policies
+    const { data, error } = await supabaseAdmin
       .from("blog_posts")
-      .select(
-        "id, title, slug, content, excerpt, featured_image, published, published_at, created_at, author_id, author",
-      )
+      .select("id, title, slug, content, excerpt, featured_image, published, published_at, created_at, author")
       .eq("published", true)
       .order("published_at", { ascending: false })
       .range(offset, offset + limit - 1)
