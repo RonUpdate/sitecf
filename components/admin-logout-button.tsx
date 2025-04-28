@@ -18,14 +18,13 @@ export default function AdminLogoutButton() {
       // Perform logout directly using the client
       await supabase.auth.signOut()
 
-      // Redirect after a short delay
-      setTimeout(() => {
-        router.push("/")
-        router.refresh()
-      }, 500)
+      // Force navigation to home page
+      window.location.href = "/"
     } catch (error) {
       console.error("Logout error:", error)
       setIsLoading(false)
+      // If there's an error, still try to redirect
+      window.location.href = "/"
     }
   }
 

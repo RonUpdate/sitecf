@@ -18,25 +18,19 @@ export default function LogoutPage() {
         const supabase = createClientComponentClient()
 
         // Perform logout
-        const { error } = await supabase.auth.signOut()
+        await supabase.auth.signOut()
 
-        if (error) {
-          throw new Error(error.message)
-        }
-
-        // Redirect after a short delay to ensure cookies are cleared
-        setTimeout(() => {
-          router.push("/")
-          router.refresh()
-        }, 500)
+        // Use window.location for a hard redirect to ensure complete page refresh
+        window.location.href = "/"
       } catch (err: any) {
+        console.error("Logout error:", err)
         setError(err.message || "An error occurred during logout")
         setIsLoading(false)
       }
     }
 
     handleLogout()
-  }, [router])
+  }, [])
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
@@ -50,7 +44,7 @@ export default function LogoutPage() {
         <div className="text-center">
           <h1 className="text-xl font-semibold text-red-500">Ошибка при выходе из системы</h1>
           <p className="text-muted-foreground mt-2">{error}</p>
-          <Button onClick={() => router.push("/")} className="mt-4">
+          <Button onClick={() => (window.location.href = "/")} className="mt-4">
             Вернуться на главную
           </Button>
         </div>

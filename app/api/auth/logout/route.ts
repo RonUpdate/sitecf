@@ -1,32 +1,36 @@
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
-import { NextResponse } from "next/server"
-import type { Database } from "@/types/supabase"
-import logger from "@/lib/logger"
 
-// This is a simple API route that handles logout
+export const dynamic = "force-dynamic"
+
 export async function POST() {
   try {
+    // Create a new supabase server client with the cookies
     const cookieStore = cookies()
-    const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore })
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
     // Sign out the user
-    const { error } = await supabase.auth.signOut()
+    await supabase.auth.signOut()
 
-    if (error) {
-      logger.auth.error("Logout error", { error: error.message })
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 })
-    }
+    // Return a simple success response
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    })
+  } catch (error) {
+    console.error("Logout error:", error)
 
-    logger.auth.info("User logged out successfully")
-    return NextResponse.json({ success: true, message: "Logged out successfully" })
-  } catch (error: any) {
-    logger.auth.error("Unexpected logout error", { error: error.message })
-    return NextResponse.json({ success: false, error: "An error occurred during logout" }, { status: 500 })
+    // Return a simple error response
+    return new Response(JSON.stringify({ success: false }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    })
   }
 }
 
-// Handle direct access to the API route
 export async function GET() {
-  return new Response("This endpoint only accepts POST requests", { status: 405 })
+  return new Response(JSON.stringify({ error: "Method not allowed" }), {
+    status: 405,
+    headers: { "Content-Type": "application/json" },
+  })
 }

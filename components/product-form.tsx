@@ -16,6 +16,7 @@ import { getSupabaseClient } from "@/lib/supabase-client"
 import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft, Upload } from "lucide-react"
 import Link from "next/link"
+import { createProduct } from "@/app/admin/products/actions"
 
 type Category = {
   id: string
@@ -52,6 +53,8 @@ export function ProductForm({ product }: { product?: Product }) {
   const router = useRouter()
   const supabase = getSupabaseClient()
   const { toast } = useToast()
+  const [message, setMessage] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
   // Add a state variable to track if the slug has been manually edited
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false)
@@ -202,6 +205,22 @@ export function ProductForm({ product }: { product?: Product }) {
     }
   }
 
+  async function handleSubmitNew(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setIsLoading(true)
+    const formData = new FormData(e.currentTarget)
+
+    try {
+      await createProduct(formData)
+      setMessage("Товар успешно добавлен!")
+      e.currentTarget.reset()
+    } catch (error: any) {
+      setMessage("Ошибка: " + error.message)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div>
       <Link href="/admin/products" className="flex items-center text-sm mb-6">
@@ -209,14 +228,14 @@ export function ProductForm({ product }: { product?: Product }) {
         Back to products
       </Link>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={isEditing ? handleSubmit : handleSubmitNew} className="space-y-6">
         <Card>
           <CardContent className="pt-6">
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Product Name</Label>
-                  <Input id="name" value={name} onChange={handleNameChange} required />
+                  <Input id="name" name="name" value={name} onChange={handleNameChange} required />
                 </div>
 
                 {/* In the JSX, update the slug input and button */}
@@ -225,6 +244,7 @@ export function ProductForm({ product }: { product?: Product }) {
                   <div className="flex gap-2">
                     <Input
                       id="slug"
+                      name="slug"
                       value={slug}
                       onChange={handleSlugChange}
                       required
@@ -241,6 +261,7 @@ export function ProductForm({ product }: { product?: Product }) {
                   <Label htmlFor="price">Price</Label>
                   <Input
                     id="price"
+                    name="price"
                     type="number"
                     step="0.01"
                     min="0"
@@ -254,6 +275,7 @@ export function ProductForm({ product }: { product?: Product }) {
                   <Label htmlFor="stock">Stock Quantity</Label>
                   <Input
                     id="stock"
+                    name="stock_quantity"
                     type="number"
                     min="0"
                     value={stockQuantity}
@@ -294,6 +316,7 @@ export function ProductForm({ product }: { product?: Product }) {
                   <Label htmlFor="description">Description</Label>
                   <Textarea
                     id="description"
+                    name="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={4}
@@ -333,6 +356,7 @@ export function ProductForm({ product }: { product?: Product }) {
                   <Label htmlFor="image_url">Or use image URL</Label>
                   <Input
                     id="image_url"
+                    name="image_url"
                     type="url"
                     value={imageUrl}
                     onChange={(e) => setImageUrl(e.target.value)}
@@ -350,10 +374,17 @@ export function ProductForm({ product }: { product?: Product }) {
               Cancel
             </Button>
           </Link>
-          <Button type="submit" disabled={loading}>
-            {loading ? "Saving..." : isEditing ? "Update Product" : "Create Product"}
+          <Button type="submit" disabled={loading || isLoading}>
+            {loading || isLoading ? "Saving..." : isEditing ? "Update Product" : "Create Product"}
           </Button>
         </div>
+        {message && (
+          <div
+            className={`p-3 rounded-md text-center ${message.includes("Ошибка") ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}
+          >
+            {message}
+          </div>
+        )}
       </form>
     </div>
   )

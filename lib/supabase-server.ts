@@ -41,3 +41,5 @@ export const createFreshServerSupabaseClient = async () => {
     throw error
   }
 }
+
+export const createServerClient = createServerSupabaseClient
