@@ -141,6 +141,26 @@ export default async function AdminDashboard() {
             </Link>
           </li>
           <li>
+            <Link href="/admin/categories" className="text-blue-600 hover:underline">
+              Управление категориями
+            </Link>
+          </li>
+          <li>
+            <Link href="/admin/categories/new" className="text-blue-600 hover:underline">
+              Добавить новую категорию
+            </Link>
+          </li>
+          <li>
+            <Link href="/admin/blog" className="text-blue-600 hover:underline">
+              Управление блогом
+            </Link>
+          </li>
+          <li>
+            <Link href="/admin/blog/new" className="text-blue-600 hover:underline">
+              Добавить новый пост
+            </Link>
+          </li>
+          <li>
             <Link href="/admin/coloring-pages/new" className="text-blue-600 hover:underline">
               Новая страница раскраски (прямая ссылка)
             </Link>

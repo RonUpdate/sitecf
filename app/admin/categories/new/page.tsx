@@ -1,18 +1,43 @@
-import { CategoryForm } from "@/components/category-form"
-import { requireAdmin } from "@/lib/auth-utils"
+"use client"
 
-export default async function NewCategoryPage() {
-  // Ensure the user is an admin before rendering this page
-  await requireAdmin()
+import type React from "react"
+
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+
+export default function NewCategoryPage() {
+  const supabase = createClientComponentClient()
+  const router = useRouter()
+  const [name, setName] = useState("")
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+
+    const { error } = await supabase.from("categories").insert({ name })
+
+    if (error) {
+      console.error("Ошибка создания категории:", error.message)
+      alert("Ошибка: " + error.message)
+    } else {
+      router.push("/admin/categories")
+    }
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Add New Category</h1>
-      </div>
-      <div className="border rounded-lg p-6 bg-white">
-        <CategoryForm />
-      </div>
-    </div>
+    <form onSubmit={handleSubmit} className="max-w-md mx-auto p-8">
+      <h1 className="text-2xl font-bold mb-6">Добавить категорию</h1>
+      <input
+        type="text"
+        placeholder="Название категории"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        required
+        className="block w-full mb-4 p-2 border rounded"
+      />
+      <button type="submit" className="w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+        Сохранить
+      </button>
+    </form>
   )
 }
