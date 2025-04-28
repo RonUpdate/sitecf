@@ -8,13 +8,13 @@ import {
   Tag,
   Package,
   Settings,
-  LogOut,
   Users,
   ImageIcon,
   BookOpen,
   FileCode,
   AlertCircle,
 } from "lucide-react"
+import LogoutButton from "@/components/logout-button"
 
 export function AdminSidebar() {
   const pathname = usePathname()
@@ -56,13 +56,9 @@ export function AdminSidebar() {
             </li>
           ))}
           <li className="pt-4 mt-4 border-t border-gray-700">
-            <a
-              href="/api/auth/logout"
-              className="flex items-center p-2 text-gray-300 hover:bg-gray-700 hover:text-white rounded-md transition-colors"
-            >
-              <LogOut className="h-5 w-5" />
-              <span className="ml-3">Выйти</span>
-            </a>
+            <div className="p-2">
+              <LogoutButton />
+            </div>
           </li>
         </ul>
       </nav>

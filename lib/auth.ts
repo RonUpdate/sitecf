@@ -7,10 +7,16 @@ export const getServerSession = cache(async () => {
   try {
     const cookieStore = cookies()
     const supabase = createServerComponentClient({ cookies: () => cookieStore })
-    const { data } = await supabase.auth.getSession()
+    const { data, error } = await supabase.auth.getSession()
+
+    if (error) {
+      console.error("Error getting server session:", error)
+      return null
+    }
+
     return data.session
   } catch (error) {
-    console.error("Error getting server session:", error)
+    console.error("Exception getting server session:", error)
     return null
   }
 })
@@ -19,18 +25,31 @@ export const getServerSession = cache(async () => {
 export const getClientSession = async () => {
   try {
     const supabase = createClientComponentClient()
-    const { data } = await supabase.auth.getSession()
+    const { data, error } = await supabase.auth.getSession()
+
+    if (error) {
+      console.error("Error getting client session:", error)
+      return null
+    }
+
     return data.session
   } catch (error) {
-    console.error("Error getting client session:", error)
+    console.error("Exception getting client session:", error)
     return null
   }
+  \
 }
+)
 
 // Server-side function to check if the user is authenticated
 export const requireAuth = cache(async () => {
-  const session = await getServerSession()
-  return !!session
+  try {
+    const session = await getServerSession()
+    return !!session
+  } catch (error) {
+    console.error("Error in requireAuth:", error)
+    return false
+  }
 })
 
 // Server-side function to get the current user
@@ -38,10 +57,16 @@ export const getCurrentUser = cache(async () => {
   try {
     const cookieStore = cookies()
     const supabase = createServerComponentClient({ cookies: () => cookieStore })
-    const { data } = await supabase.auth.getUser()
+    const { data, error } = await supabase.auth.getUser()
+
+    if (error) {
+      console.error("Error getting current user:", error)
+      return null
+    }
+
     return data.user
   } catch (error) {
-    console.error("Error getting current user:", error)
+    console.error("Exception getting current user:", error)
     return null
   }
 })

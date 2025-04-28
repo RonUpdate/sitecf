@@ -4,26 +4,37 @@ import type { NextRequest } from "next/server"
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
-  const supabase = createMiddlewareClient({ req, res })
-
-  // Получаем текущий путь
-  const path = req.nextUrl.pathname
-
-  // Проверяем, относится ли путь к админке
-  const isAdminPath = path.startsWith("/admin")
-  const isLoginPath = path === "/login"
-  const isErrorPath = path === "/unauthorized" || path === "/forbidden" || path === "/error"
-
-  // Если это путь ошибки, пропускаем проверку
-  if (isErrorPath) {
-    return res
-  }
 
   try {
+    const supabase = createMiddlewareClient({ req, res })
+
+    // Получаем текущий путь
+    const path = req.nextUrl.pathname
+
+    // Проверяем, относится ли путь к админке
+    const isAdminPath = path.startsWith("/admin")
+    const isLoginPath = path === "/login"
+    const isErrorPath = path === "/unauthorized" || path === "/forbidden" || path === "/error"
+
+    // Если это путь ошибки, пропускаем проверку
+    if (isErrorPath) {
+      return res
+    }
+
     // Получаем сессию пользователя
     const {
       data: { session },
+      error: sessionError,
     } = await supabase.auth.getSession()
+
+    if (sessionError) {
+      console.error("Middleware session error:", sessionError)
+      // Redirect to error page if there's a session error
+      if (isAdminPath) {
+        return NextResponse.redirect(new URL("/error?message=session_error", req.url))
+      }
+      return res
+    }
 
     // Если пытаемся получить доступ к админке без сессии
     if (isAdminPath && !session) {
@@ -38,6 +49,10 @@ export async function middleware(req: NextRequest) {
     }
   } catch (error) {
     console.error("Middleware error:", error)
+    // For admin paths, redirect to error page on exception
+    if (req.nextUrl.pathname.startsWith("/admin")) {
+      return NextResponse.redirect(new URL("/error?message=middleware_error", req.url))
+    }
   }
 
   return res
