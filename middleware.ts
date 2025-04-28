@@ -6,35 +6,38 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
   const supabase = createMiddlewareClient({ req, res })
 
-  // Get current path
+  // Получаем текущий путь
   const path = req.nextUrl.pathname
 
-  // Check if path is admin-related
+  // Проверяем, относится ли путь к админке
   const isAdminPath = path.startsWith("/admin")
   const isLoginPath = path === "/login"
   const isErrorPath = path === "/unauthorized" || path === "/forbidden" || path === "/error"
 
-  // Skip check for error paths
+  // Если это путь ошибки, пропускаем проверку
   if (isErrorPath) {
     return res
   }
 
   try {
-    // Get user session
+    // Получаем сессию пользователя
     const {
       data: { session },
     } = await supabase.auth.getSession()
 
-    // If already authenticated and trying to access login page
+    // Если пытаемся получить доступ к админке без сессии
+    if (isAdminPath && !session) {
+      const redirectUrl = new URL("/login", req.url)
+      redirectUrl.searchParams.set("from", path)
+      return NextResponse.redirect(redirectUrl)
+    }
+
+    // Если уже авторизованы и пытаемся получить доступ к странице входа
     if (isLoginPath && session) {
       return NextResponse.redirect(new URL("/admin", req.url))
     }
-
-    // For admin paths, we'll let the layout handle the auth check
-    // This prevents redirect loops and errors
   } catch (error) {
     console.error("Middleware error:", error)
-    // Let the request through to be handled by the layout
   }
 
   return res

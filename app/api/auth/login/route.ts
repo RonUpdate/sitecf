@@ -24,7 +24,6 @@ export async function POST(request: Request) {
   })
 
   if (error) {
-    console.error("Login failed:", error.message)
     return NextResponse.json({ error: error.message }, { status: 401 })
   }
 
@@ -40,8 +39,6 @@ export async function POST(request: Request) {
     await supabase.auth.signOut()
     return NextResponse.json({ error: "У вас нет прав администратора" }, { status: 403 })
   }
-
-  console.log("Login successful. Session will expire in:", expiresIn, "seconds")
 
   return NextResponse.json(
     {

@@ -1,100 +1,36 @@
-"use client"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Plus } from "lucide-react"
+import { ProductTable } from "@/components/product-table"
+import { createServerSupabaseClient } from "@/lib/supabase-server"
 
-import { useEffect, useState } from "react"
-import { UnifiedItemTable } from "@/components/unified-item-table"
-import { AdminFilterBar } from "@/components/admin-filter-bar"
-import { Skeleton } from "@/components/ui/skeleton"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import type { Database } from "@/types/supabase"
+export default async function ProductsPage() {
+  const supabase = await createServerSupabaseClient()
 
-export default function ProductsPage({ searchParams }: { searchParams: { query?: string } }) {
-  const [products, setProducts] = useState<any[]>([])
-  const [categories, setCategories] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    async function fetchData() {
-      const supabase = createClientComponentClient<Database>()
-
-      // Fetch all products with category information
-      let query = supabase
-        .from("products")
-        .select(`
-          *,
-          categories:category_id (
-            name
-          )
-        `)
-        .order("created_at", { ascending: false })
-
-      // Apply search if provided
-      if (searchParams.query) {
-        query = query.ilike("name", `%${searchParams.query}%`)
-      }
-
-      const { data: productsData } = await query
-      setProducts(productsData || [])
-
-      // Fetch categories for filter options
-      const { data: categoriesData } = await supabase.from("categories").select("id, name").order("name")
-      setCategories(categoriesData || [])
-
-      setLoading(false)
-    }
-
-    fetchData()
-  }, [searchParams.query])
-
-  const filterOptions = [
-    {
-      id: "category_id",
-      label: "Категория",
-      type: "select",
-      options: categories?.map((cat) => ({ value: cat.id, label: cat.name })) || [],
-    },
-    {
-      id: "is_featured",
-      label: "Рекомендуемый",
-      type: "boolean",
-    },
-    {
-      id: "stock_quantity",
-      label: "Наличие",
-      type: "select",
-      options: [
-        { value: "in_stock", label: "В наличии" },
-        { value: "out_of_stock", label: "Нет в наличии" },
-      ],
-    },
-  ]
-
-  const sortOptions = [
-    { id: "name", label: "Название" },
-    { id: "price", label: "Цена" },
-    { id: "created_at", label: "Дата создания" },
-  ]
+  // Get products with category information
+  const { data: products } = await supabase
+    .from("products")
+    .select(`
+      *,
+      categories:category_id (
+        name
+      )
+    `)
+    .order("created_at", { ascending: false })
 
   return (
     <div>
-      <AdminFilterBar
-        title="Товары"
-        filterOptions={filterOptions}
-        sortOptions={sortOptions}
-        onSearch={(query) => {}}
-        onFilter={(filters) => {}}
-        onSort={(sort) => {}}
-      />
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold">Products</h1>
+        <Link href="/admin/products/new">
+          <Button>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Product
+          </Button>
+        </Link>
+      </div>
 
-      {loading ? (
-        <Skeleton className="h-[500px] w-full" />
-      ) : (
-        <UnifiedItemTable
-          type="product"
-          initialItems={products}
-          addNewUrl="/admin/products/new"
-          addNewLabel="Добавить товар"
-        />
-      )}
+      <ProductTable products={products || []} />
     </div>
   )
 }

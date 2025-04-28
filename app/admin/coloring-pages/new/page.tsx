@@ -1,6 +1,5 @@
-// Удаляем импорт generateMetadata или Metadata, если они есть
+import { redirect } from "next/navigation"
 
-export default function NewColoringPagePage() {
-  // Код страницы...
-  return <div>New Coloring Page</div>
+export default function NewColoringPageRedirect() {
+  redirect("/admin/coloring-pages/create")
 }

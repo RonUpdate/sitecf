@@ -1,28 +1,20 @@
-import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
-import { UnifiedSearch } from "@/components/unified-search"
+import { SearchForm } from "@/components/search-form"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
-
-export const dynamic = "force-dynamic"
 
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: { q: string; type?: string }
+  searchParams: { q: string }
 }) {
   const query = searchParams.q || ""
-  const type = searchParams.type || "coloringPage" // Default to coloring pages
-  const isProduct = type === "product"
-  const tableName = isProduct ? "products" : "coloring_pages"
-  const nameField = isProduct ? "name" : "title"
-
   const supabase = await createServerSupabaseClient()
 
   const { data: searchResults } = await supabase
-    .from(tableName)
+    .from("coloring_pages")
     .select(`
       *,
       categories:category_id (
@@ -30,13 +22,13 @@ export default async function SearchPage({
         slug
       )
     `)
-    .or(`${nameField}.ilike.%${query}%,description.ilike.%${query}%,slug.ilike.%${query}%`)
+    .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
     .order("is_featured", { ascending: false })
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("ru-RU", {
+    return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "RUB",
+      currency: "USD",
     }).format(price)
   }
 
@@ -44,68 +36,54 @@ export default async function SearchPage({
     <div className="container px-4 py-12 md:px-6 md:py-16">
       <Link href="/" className="flex items-center text-sm mb-6">
         <ArrowLeft className="mr-2 h-4 w-4" />
-        Назад на главную
+        Back to home
       </Link>
 
       <div className="flex flex-col items-center justify-center mb-12">
-        <h1 className="text-3xl font-bold tracking-tighter mb-4">Результаты поиска</h1>
+        <h1 className="text-3xl font-bold tracking-tighter mb-4">Search Results</h1>
         <p className="text-gray-500 dark:text-gray-400 text-center max-w-[700px] mb-6">
-          {query ? `Показаны результаты для "${query}"` : `Поиск ${isProduct ? "товаров" : "раскрасок"}`}
+          {query ? `Showing results for "${query}"` : "Search for coloring pages"}
         </p>
-        <div className="flex gap-4 mb-6">
-          <Link href={`/search?type=product&q=${query}`}>
-            <Button variant={isProduct ? "default" : "outline"}>Товары</Button>
-          </Link>
-          <Link href={`/search?type=coloringPage&q=${query}`}>
-            <Button variant={!isProduct ? "default" : "outline"}>Раскраски</Button>
-          </Link>
-        </div>
-        <UnifiedSearch type={isProduct ? "product" : "coloringPage"} className="max-w-md" />
+        <SearchForm className="max-w-md" />
       </div>
 
       {searchResults && searchResults.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {searchResults.map((item) => (
-            <Link href={`/${isProduct ? "product" : "coloring-page"}/${item.slug}`} key={item.id}>
+          {searchResults.map((page) => (
+            <Link href={`/coloring-page/${page.slug}`} key={page.id}>
               <div className="group border rounded-lg overflow-hidden transition-all hover:shadow-lg">
                 <div className="relative h-64 w-full overflow-hidden">
                   <Image
                     src={
-                      isProduct
-                        ? item.image_url || "/placeholder.svg?height=256&width=256&query=product"
-                        : item.thumbnail_url ||
-                          item.image_url ||
-                          "/placeholder.svg?height=256&width=256&query=coloring+page"
+                      page.thumbnail_url ||
+                      page.image_url ||
+                      "/placeholder.svg?height=256&width=256&query=coloring+page" ||
+                      "/placeholder.svg" ||
+                      "/placeholder.svg"
                     }
-                    alt={isProduct ? item.name : item.title}
+                    alt={page.title}
                     fill
                     className="object-cover transition-transform group-hover:scale-105"
                   />
-                  {item.is_featured && (
+                  {page.is_featured && (
                     <div className="absolute top-2 right-2">
-                      <Badge className="bg-primary">Рекомендуемый</Badge>
+                      <Badge className="bg-primary">Featured</Badge>
                     </div>
                   )}
-                  {item.categories && (
+                  {page.categories && (
                     <div className="absolute bottom-2 left-2">
                       <Badge variant="outline" className="bg-white/80 text-black">
-                        {item.categories.name}
+                        {page.categories.name}
                       </Badge>
                     </div>
                   )}
                 </div>
                 <div className="p-4">
-                  <h3 className="font-semibold text-lg">{isProduct ? item.name : item.title}</h3>
-                  <p className="text-gray-500 dark:text-gray-400 line-clamp-2 text-sm mt-1">{item.description}</p>
+                  <h3 className="font-semibold text-lg">{page.title}</h3>
+                  <p className="text-gray-500 dark:text-gray-400 line-clamp-2 text-sm mt-1">{page.description}</p>
                   <div className="flex justify-between items-center mt-2">
-                    {isProduct ? (
-                      <Badge variant={item.stock_quantity > 0 ? "outline" : "destructive"}>
-                        {item.stock_quantity > 0 ? `${item.stock_quantity} шт.` : "Нет в наличии"}
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline">{item.difficulty_level}</Badge>
-                    )}
-                    <span className="font-bold text-primary">{formatPrice(item.price)}</span>
+                    <Badge variant="outline">{page.difficulty_level}</Badge>
+                    <span className="font-bold text-primary">{formatPrice(page.price)}</span>
                   </div>
                 </div>
               </div>
@@ -115,9 +93,7 @@ export default async function SearchPage({
       ) : (
         <div className="text-center py-12 border rounded-lg">
           <p className="text-gray-500 dark:text-gray-400">
-            {query
-              ? `${isProduct ? "Товары" : "Раскраски"} по запросу "${query}" не найдены.`
-              : `Введите поисковый запрос для поиска ${isProduct ? "товаров" : "раскрасок"}.`}
+            {query ? `No coloring pages found for "${query}".` : "Enter a search term to find coloring pages."}
           </p>
         </div>
       )}

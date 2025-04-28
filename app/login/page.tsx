@@ -1,84 +1,54 @@
-"use client"
+import { cookies } from "next/headers"
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
+import type { Database } from "@/types/supabase"
+import { ServerLoginForm } from "@/components/server-login-form"
+import logger from "@/lib/logger"
+import { AuthRedirect } from "@/components/auth-redirect"
 
-import type React from "react"
+export const dynamic = "force-dynamic"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { getSupabaseClient } from "@/lib/supabase"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { toast } from "@/hooks/use-toast"
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined }
+}) {
+  const cookieStore = cookies()
+  const supabase = createServerComponentClient<Database>({ cookies: () => cookieStore })
 
-export default function LoginPage() {
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  // Получаем сессию пользователя
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+  // Логируем информацию о сессии
+  logger.auth.info("Login page accessed", {
+    hasSession: !!session,
+    searchParams,
+  })
 
-    try {
-      const supabase = getSupabaseClient()
-
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-
-      if (error) throw error
-
-      toast({
-        title: "Success",
-        description: "You have been logged in successfully",
-      })
-
-      router.push("/admin")
-      router.refresh()
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to log in",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
-    }
+  // Если пользователь уже авторизован, перенаправляем на админ-панель
+  // Используем клиентский редирект вместо серверного
+  if (session) {
+    return <AuthRedirect to="/admin" reason="Already authenticated" />
   }
 
+  // Получаем параметр from из URL
+  const from = typeof searchParams.from === "string" ? searchParams.from : "/admin"
+
+  // Если пользователь не авторизован, отображаем форму входа
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Admin Login</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            </div>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          Вход в систему
+        </h2>
+      </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Logging in..." : "Login"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <ServerLoginForm from={from} />
+        </div>
+      </div>
     </div>
   )
 }

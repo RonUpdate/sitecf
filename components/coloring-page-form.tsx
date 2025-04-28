@@ -16,7 +16,6 @@ import { getSupabaseClient } from "@/lib/supabase-client"
 import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft, Upload } from "lucide-react"
 import Link from "next/link"
-import { generateSlug } from "@/lib/transliteration"
 
 type Category = {
   id: string
@@ -122,6 +121,16 @@ export function ColoringPageForm({ coloringPage }: { coloringPage?: ColoringPage
     reader.readAsDataURL(file)
   }
 
+  const generateSlug = (text: string) => {
+    return text
+      .toString()
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "-") // Replace spaces with -
+      .replace(/[^\w-]+/g, "") // Remove all non-word chars
+      .replace(/--+/g, "-") // Replace multiple - with single -
+  }
+
   // Replace the existing handleTitleChange function with this improved version
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value
@@ -212,7 +221,7 @@ export function ColoringPageForm({ coloringPage }: { coloringPage?: ColoringPage
       const coloringPageData = {
         title,
         description,
-        price: price ? Number.parseFloat(price) : 0,
+        price: Number.parseFloat(price) || 0,
         slug,
         difficulty_level: difficultyLevel,
         age_group: ageGroup,
@@ -304,6 +313,7 @@ export function ColoringPageForm({ coloringPage }: { coloringPage?: ColoringPage
                     min="0"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
+                    required
                   />
                 </div>
 

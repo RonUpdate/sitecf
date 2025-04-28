@@ -1,36 +1,78 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
+import { cn } from "@/lib/utils"
 
 export function NavigationProgress() {
-  const [isNavigating, setIsNavigating] = useState(false)
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const [isNavigating, setIsNavigating] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const timeoutRef = useRef<{
+    progress1?: NodeJS.Timeout
+    progress2?: NodeJS.Timeout
+    reset?: NodeJS.Timeout
+  }>({})
 
-  // Reset navigation state when component mounts
+  // Track previous path to avoid unnecessary animations
+  const prevPathRef = useRef<string>("")
+  const currentPath = pathname + searchParams.toString()
+
   useEffect(() => {
-    setIsNavigating(false)
+    // Clean up function to clear all timeouts
+    return () => {
+      if (timeoutRef.current.progress1) clearTimeout(timeoutRef.current.progress1)
+      if (timeoutRef.current.progress2) clearTimeout(timeoutRef.current.progress2)
+      if (timeoutRef.current.reset) clearTimeout(timeoutRef.current.reset)
+    }
   }, [])
 
-  // Track navigation changes
   useEffect(() => {
-    // When path or search params change, briefly show loading state
+    // Skip animation on initial render
+    if (prevPathRef.current === "") {
+      prevPathRef.current = currentPath
+      return
+    }
+
+    // Skip if path hasn't changed
+    if (prevPathRef.current === currentPath) {
+      return
+    }
+
+    // Update previous path
+    prevPathRef.current = currentPath
+
+    // Clear any existing timeouts
+    if (timeoutRef.current.progress1) clearTimeout(timeoutRef.current.progress1)
+    if (timeoutRef.current.progress2) clearTimeout(timeoutRef.current.progress2)
+    if (timeoutRef.current.reset) clearTimeout(timeoutRef.current.reset)
+
+    // Start progress animation
     setIsNavigating(true)
+    setProgress(20)
 
-    // Clear loading state after a short delay
-    const timer = setTimeout(() => {
-      setIsNavigating(false)
-    }, 500)
+    timeoutRef.current.progress1 = setTimeout(() => {
+      setProgress(60)
+    }, 100)
 
-    return () => clearTimeout(timer)
-  }, [pathname, searchParams])
+    timeoutRef.current.progress2 = setTimeout(() => {
+      setProgress(100)
 
-  if (!isNavigating) return null
+      timeoutRef.current.reset = setTimeout(() => {
+        setIsNavigating(false)
+        setProgress(0)
+      }, 200)
+    }, 300)
+  }, [pathname, searchParams, currentPath])
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-primary/20">
-      <div className="h-full bg-primary w-1/3 animate-[progress_1s_ease-in-out_infinite]"></div>
-    </div>
+    <div
+      className={cn(
+        "fixed top-0 left-0 right-0 h-1 bg-primary z-50 transition-all duration-300 ease-in-out",
+        isNavigating ? "opacity-100" : "opacity-0",
+      )}
+      style={{ width: `${progress}%` }}
+    />
   )
 }

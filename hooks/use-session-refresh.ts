@@ -29,7 +29,6 @@ export function useSessionRefresh() {
       if (data.session) {
         const expiresAt = new Date(data.session.expires_at * 1000)
         setSessionExpiry(expiresAt)
-        console.log("Session retrieved successfully. Expires at:", expiresAt.toLocaleString())
 
         // Проверяем, является ли сессия долгосрочной (больше 24 часов)
         const now = new Date()
@@ -38,7 +37,6 @@ export function useSessionRefresh() {
 
         return expiresAt
       } else {
-        console.log("No session found.")
         setSessionExpiry(null)
         return null
       }
@@ -69,18 +67,7 @@ export function useSessionRefresh() {
         },
       })
 
-      if (error) {
-        console.error("Error refreshing session:", error.message)
-        // Handle invalid refresh token error
-        if (error.message.includes("Invalid Refresh Token")) {
-          console.warn("Invalid refresh token. Redirecting to login.")
-          setError("Invalid session. Please log in again.")
-          router.push("/login") // Redirect to login page
-          return false
-        }
-        setError("Не удалось обновить сессию")
-        return false
-      }
+      if (error) throw error
 
       if (data.session) {
         const newExpiresAt = new Date(data.session.expires_at * 1000)
@@ -92,20 +79,12 @@ export function useSessionRefresh() {
 
         return true
       }
-
-      // Если сессия не обновилась, сбрасываем состояние
-      setIsRefreshing(false)
-      return false
     } catch (err) {
       console.error("Ошибка при обновлении сессии:", err)
       setError("Не удалось обновить сессию")
-      setIsRefreshing(false)
       return false
     } finally {
-      // Убедимся, что состояние обновления сбрасывается
-      setTimeout(() => {
-        setIsRefreshing(false)
-      }, 1000)
+      setIsRefreshing(false)
     }
   }
 
@@ -136,13 +115,9 @@ export function useSessionRefresh() {
 
   // Эффект для инициализации проверки сессии и настройки таймера
   useEffect(() => {
-    let isMounted = true
-
     const initSession = async () => {
-      if (!isMounted) return
-
       const expiryDate = await checkSession()
-      if (expiryDate && isMounted) {
+      if (expiryDate) {
         setupRefreshTimer(expiryDate)
       }
     }
@@ -151,20 +126,16 @@ export function useSessionRefresh() {
 
     // Настраиваем интервал для периодической проверки состояния сессии
     const intervalId = setInterval(async () => {
-      if (!isMounted) return
-
       const expiryDate = await checkSession()
-      if (expiryDate && isMounted) {
+      if (expiryDate) {
         setupRefreshTimer(expiryDate)
       }
     }, CHECK_INTERVAL)
 
     // Обработчик события фокуса окна для проверки сессии при возвращении на вкладку
     const handleFocus = () => {
-      if (!isMounted) return
-
       checkSession().then((expiryDate) => {
-        if (expiryDate && isMounted) {
+        if (expiryDate) {
           setupRefreshTimer(expiryDate)
         }
       })
@@ -174,7 +145,6 @@ export function useSessionRefresh() {
 
     // Очистка при размонтировании
     return () => {
-      isMounted = false
       if (timerRef.current) {
         clearTimeout(timerRef.current)
       }

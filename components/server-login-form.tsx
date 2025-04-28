@@ -2,13 +2,14 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import logger from "@/lib/logger"
 
 export function ServerLoginForm({ from = "/admin" }: { from?: string }) {
   const [email, setEmail] = useState("")
@@ -16,11 +17,32 @@ export function ServerLoginForm({ from = "/admin" }: { from?: string }) {
   const [rememberMe, setRememberMe] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [supabaseInitialized, setSupabaseInitialized] = useState(true)
+  const [supabaseInitialized, setSupabaseInitialized] = useState(false)
   const router = useRouter()
 
   // Инициализируем Supabase клиент только один раз
   const supabase = createClientComponentClient()
+
+  // Проверяем инициализацию Supabase при монтировании компонента
+  useEffect(() => {
+    const checkSupabase = async () => {
+      try {
+        // Простой запрос для проверки соединения
+        const { error } = await supabase.auth.getSession()
+        if (error) {
+          logger.auth.error("Supabase initialization error", error)
+          setError("Ошибка инициализации системы аутентификации. Пожалуйста, обновите страницу.")
+        } else {
+          setSupabaseInitialized(true)
+        }
+      } catch (err) {
+        logger.auth.error("Supabase client error", err)
+        setError("Ошибка подключения к сервису аутентификации. Пожалуйста, проверьте соединение.")
+      }
+    }
+
+    checkSupabase()
+  }, [supabase.auth])
 
   const validateInputs = () => {
     if (!email || !email.includes("@")) {
@@ -52,7 +74,7 @@ export function ServerLoginForm({ from = "/admin" }: { from?: string }) {
     setLoading(true)
 
     try {
-      console.log("Login attempt", { email, rememberMe })
+      logger.auth.event("Login attempt", { email, rememberMe })
 
       // Определяем срок действия сессии в зависимости от выбора "Запомнить меня"
       const expiresIn = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 // 30 дней или 1 час
@@ -66,7 +88,7 @@ export function ServerLoginForm({ from = "/admin" }: { from?: string }) {
       })
 
       if (error) {
-        console.error("Login failed", { errorMessage: error.message, errorCode: error.code, email })
+        logger.auth.error("Login failed", { errorMessage: error.message, errorCode: error.code, email })
 
         // Обработка конкретных ошибок
         if (error.message.includes("Invalid login credentials")) {
@@ -82,13 +104,13 @@ export function ServerLoginForm({ from = "/admin" }: { from?: string }) {
       }
 
       if (!data || !data.session) {
-        console.error("No session data returned", { email })
+        logger.auth.error("No session data returned", { email })
         setError("Не удалось создать сессию. Пожалуйста, попробуйте еще раз.")
         setLoading(false)
         return
       }
 
-      console.log("Login successful", {
+      logger.auth.event("Login successful", {
         email,
         rememberMe,
         expiresIn,
@@ -96,28 +118,49 @@ export function ServerLoginForm({ from = "/admin" }: { from?: string }) {
         userId: data.session.user.id,
       })
 
-      // Проверяем права администратора
+      // Проверяем права администратора - используем прямой запрос без сложных условий
       const { data: adminUser, error: adminError } = await supabase
         .from("admin_users")
-        .select("*")
+        .select("id, email")
         .eq("email", email)
         .single()
 
-      if (adminError || !adminUser) {
-        console.error("Not an admin user", { email, adminError })
+      if (adminError) {
+        logger.auth.error("Admin check error", { email, error: adminError })
 
+        // Если ошибка связана с политиками доступа, попробуем другой подход
+        if (adminError.code === "42P17") {
+          // Используем RPC вместо прямого запроса, чтобы обойти проблему с RLS
+          const { data: isAdmin, error: rpcError } = await supabase.rpc("is_admin", { user_email: email })
+
+          if (rpcError || !isAdmin) {
+            // Выходим из системы, так как пользователь не админ
+            await supabase.auth.signOut()
+            setError("У вас нет прав администратора")
+            setLoading(false)
+            return
+          }
+        } else {
+          // Выходим из системы при других ошибках
+          await supabase.auth.signOut()
+          setError("Ошибка проверки прав администратора: " + adminError.message)
+          setLoading(false)
+          return
+        }
+      } else if (!adminUser) {
+        logger.auth.error("Not an admin user", { email })
         // Выходим из системы, так как пользователь не админ
         await supabase.auth.signOut()
-
         setError("У вас нет прав администратора")
         setLoading(false)
         return
       }
 
       // Перенаправляем на страницу, с которой пришли, или на админку
+      // Используем router.replace вместо router.push для полной замены URL
       router.replace(from)
     } catch (err: any) {
-      console.error("Unexpected login error", {
+      logger.auth.error("Unexpected login error", {
         error: err.message || "Unknown error",
         stack: err.stack,
         email,
@@ -137,7 +180,7 @@ export function ServerLoginForm({ from = "/admin" }: { from?: string }) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          placeholder="Введите почту"
+          placeholder="admin@example.com"
           disabled={loading || !supabaseInitialized}
         />
       </div>
@@ -149,7 +192,6 @@ export function ServerLoginForm({ from = "/admin" }: { from?: string }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          placeholder="Введите пароль"
           disabled={loading || !supabaseInitialized}
         />
       </div>

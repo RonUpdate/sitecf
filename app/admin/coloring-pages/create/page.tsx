@@ -1,6 +1,10 @@
-// Удаляем импорт generateMetadata или Metadata, если они есть
+import { ColoringPageForm } from "@/components/coloring-page-form"
 
 export default function CreateColoringPagePage() {
-  // Код страницы...
-  return <div>Create Coloring Page</div>
+  return (
+    <div>
+      <h1 className="text-3xl font-bold mb-6">Добавить новую страницу раскраски</h1>
+      <ColoringPageForm />
+    </div>
+  )
 }

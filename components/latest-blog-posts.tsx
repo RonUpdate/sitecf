@@ -1,41 +1,51 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { Calendar, User } from "lucide-react"
-import { Skeleton } from "@/components/ui/skeleton"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { formatDistanceToNow } from "date-fns"
+import { ru } from "date-fns/locale"
 
-type BlogPost = {
+interface BlogPost {
   id: string
   title: string
   slug: string
-  content: string
   excerpt: string | null
   featured_image: string | null
-  published: boolean
   published_at: string | null
-  created_at: string
   author: string | null
 }
 
 export function LatestBlogPosts() {
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    async function fetchLatestPosts() {
+    const fetchLatestPosts = async () => {
       try {
-        // Use the server-side API endpoint instead of direct Supabase query
-        const response = await fetch("/api/public/blog-posts?limit=3")
-        if (!response.ok) {
-          throw new Error(`Failed to fetch: ${response.status}`)
+        const supabase = createClientComponentClient()
+
+        // Используем простой запрос без сложных соединений
+        const { data, error } = await supabase
+          .from("blog_posts")
+          .select("id, title, slug, excerpt, featured_image, published_at, author")
+          .eq("published", true)
+          .order("published_at", { ascending: false })
+          .limit(3)
+
+        if (error) {
+          console.error("Error fetching blog posts:", error)
+          setError("Не удалось загрузить последние статьи")
+          setLoading(false)
+          return
         }
-        const data = await response.json()
+
         setPosts(data || [])
-      } catch (error) {
-        console.error("Error fetching blog posts:", error)
+      } catch (err) {
+        console.error("Error fetching blog posts:", err)
+        setError("Произошла ошибка при загрузке статей")
       } finally {
         setLoading(false)
       }
@@ -44,73 +54,50 @@ export function LatestBlogPosts() {
     fetchLatestPosts()
   }, [])
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return ""
-    return new Date(dateString).toLocaleDateString("ru-RU", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    })
-  }
-
   if (loading) {
     return (
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-3">
         {[...Array(3)].map((_, i) => (
-          <Card key={i} className="overflow-hidden">
-            <Skeleton className="h-48 w-full" />
-            <CardContent className="p-4">
-              <Skeleton className="h-6 w-3/4 mb-2" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-full mt-2" />
-              <Skeleton className="h-4 w-1/2 mt-2" />
-            </CardContent>
-          </Card>
+          <div key={i} className="animate-pulse">
+            <div className="bg-gray-200 h-48 rounded-lg mb-3"></div>
+            <div className="bg-gray-200 h-6 rounded w-3/4 mb-2"></div>
+            <div className="bg-gray-200 h-4 rounded w-1/2 mb-2"></div>
+            <div className="bg-gray-200 h-20 rounded mb-2"></div>
+          </div>
         ))}
       </div>
     )
   }
 
+  if (error) {
+    return <div className="text-red-500">{error}</div>
+  }
+
   if (posts.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-gray-500 dark:text-gray-400">No blog posts found. Add some in the admin panel.</p>
-      </div>
-    )
+    return <div className="text-center py-8">Статьи пока не добавлены</div>
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+    <div className="grid gap-6 md:grid-cols-3">
       {posts.map((post) => (
-        <Link href={`/blog/${post.slug}`} key={post.id}>
-          <Card className="overflow-hidden transition-all hover:shadow-lg h-full flex flex-col">
-            <div className="relative h-48 w-full">
-              <Image
-                src={post.featured_image || "/placeholder.svg?height=192&width=384&query=blog"}
-                alt={post.title}
-                fill
-                className="object-cover"
-              />
-            </div>
-            <CardContent className="p-4 flex-grow">
-              <h3 className="font-semibold text-xl mb-2">{post.title}</h3>
-              <p className="text-gray-600 dark:text-gray-300 line-clamp-3 mb-4">
-                {post.excerpt || post.content.substring(0, 150) + "..."}
-              </p>
-            </CardContent>
-            <CardFooter className="p-4 pt-0 flex justify-between text-sm text-gray-500">
-              <div className="flex items-center">
-                <Calendar className="h-4 w-4 mr-1" />
-                {formatDate(post.published_at || post.created_at)}
-              </div>
-              {post.author && (
-                <div className="flex items-center">
-                  <User className="h-4 w-4 mr-1" />
-                  {post.author}
-                </div>
-              )}
-            </CardFooter>
-          </Card>
+        <Link href={`/blog/${post.slug}`} key={post.id} className="group">
+          <div className="overflow-hidden rounded-lg mb-3 h-48 relative">
+            <Image
+              src={post.featured_image || "/placeholder.svg?height=400&width=600&query=blog"}
+              alt={post.title}
+              fill
+              className="object-cover transition-transform group-hover:scale-105"
+              sizes="(max-width: 768px) 100vw, 33vw"
+            />
+          </div>
+          <h3 className="text-lg font-semibold group-hover:text-primary transition-colors">{post.title}</h3>
+          {post.published_at && (
+            <p className="text-sm text-gray-500 mb-2">
+              {formatDistanceToNow(new Date(post.published_at), { addSuffix: true, locale: ru })}
+              {post.author && ` · ${post.author}`}
+            </p>
+          )}
+          <p className="text-gray-600 line-clamp-3">{post.excerpt}</p>
         </Link>
       ))}
     </div>

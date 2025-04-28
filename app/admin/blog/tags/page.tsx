@@ -1,6 +1,10 @@
-// Удаляем импорт generateMetadata или Metadata, если они есть
+import { BlogTagsForm } from "@/components/blog-tags-form"
 
 export default function BlogTagsPage() {
-  // Код страницы...
-  return <div>Blog Tags</div>
+  return (
+    <div>
+      <h1 className="text-3xl font-bold mb-6">Теги блога</h1>
+      <BlogTagsForm />
+    </div>
+  )
 }

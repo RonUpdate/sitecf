@@ -7,7 +7,7 @@ import Link from "next/link"
 
 export const dynamic = "force-dynamic"
 
-export default async function HomePage() {
+export default async function Home() {
   const supabase = await createServerSupabaseClient()
 
   // Check if we have any featured coloring pages
@@ -34,9 +34,9 @@ export default async function HomePage() {
       <section className="py-16 bg-background">
         <div className="container px-4 md:px-6 mx-auto">
           <div className="flex flex-col items-center justify-center mb-12">
-            <h2 className="text-3xl font-bold tracking-tighter mb-4">Our Coloring Pages</h2>
+            <h2 className="text-3xl font-bold tracking-tighter mb-4">Our Products</h2>
             <p className="text-gray-500 dark:text-gray-400 text-center max-w-[700px]">
-              Discover our collection of high-quality coloring pages
+              Discover our collection of high-quality products
             </p>
           </div>
 
@@ -45,9 +45,9 @@ export default async function HomePage() {
           </div>
 
           <div className="flex justify-center mt-12">
-            <Link href="/featured">
+            <Link href="/products">
               <Button variant="outline" size="lg">
-                View All Coloring Pages
+                View All Products
               </Button>
             </Link>
           </div>

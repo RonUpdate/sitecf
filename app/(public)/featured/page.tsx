@@ -55,7 +55,6 @@ export default async function FeaturedPage() {
                       "/placeholder.svg?height=256&width=256&query=coloring+page" ||
                       "/placeholder.svg" ||
                       "/placeholder.svg" ||
-                      "/placeholder.svg" ||
                       "/placeholder.svg"
                     }
                     alt={page.title}

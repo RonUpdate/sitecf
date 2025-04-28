@@ -1,79 +1,123 @@
-import { createServerSupabaseClient } from "@/lib/supabase"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Layers, FileImage, Download } from "lucide-react"
+import { cookies } from "next/headers"
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import type { Database } from "@/types/supabase"
+
+export const dynamic = "force-dynamic"
 
 export default async function AdminDashboard() {
-  const supabase = createServerSupabaseClient()
+  try {
+    const supabase = createServerComponentClient<Database>({ cookies })
 
-  // Get counts
-  const { count: usersCount } = await supabase.from("admin_users").select("*", { count: "exact", head: true })
+    // Проверяем сессию
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
 
-  const { count: postsCount } = await supabase.from("blog_posts").select("*", { count: "exact", head: true })
+    if (!session) {
+      return (
+        <div className="p-6">
+          <h1 className="text-3xl font-bold mb-6">Требуется авторизация</h1>
+          <p className="mb-4">Для доступа к админ-панели необходимо войти в систему.</p>
+          <Link href="/login">
+            <Button>Войти</Button>
+          </Link>
+        </div>
+      )
+    }
 
-  const { count: categoriesCount } = await supabase.from("blog_categories").select("*", { count: "exact", head: true })
+    // Проверяем, является ли пользователь администратором
+    const { data: adminUser } = await supabase.from("admin_users").select("*").eq("email", session.user.email).single()
 
-  const { count: tagsCount } = await supabase.from("blog_tags").select("*", { count: "exact", head: true })
+    if (!adminUser) {
+      return (
+        <div className="p-6">
+          <h1 className="text-3xl font-bold mb-6">Доступ запрещен</h1>
+          <p className="mb-4">У вас нет прав для доступа к админ-панели.</p>
+          <Link href="/">
+            <Button>Вернуться на главную</Button>
+          </Link>
+        </div>
+      )
+    }
 
-  return (
-    <div>
-      <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+    // Получаем статистику
+    const { count: categoryCount } = await supabase.from("categories").select("*", { count: "exact", head: true })
+    const { count: coloringPagesCount } = await supabase
+      .from("coloring_pages")
+      .select("*", { count: "exact", head: true })
+    const { data: downloadData } = await supabase.from("coloring_pages").select("download_count")
+    const totalDownloads = downloadData?.reduce((sum, item) => sum + (item.download_count || 0), 0) || 0
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle>Users</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{usersCount}</p>
-            <p className="text-sm text-muted-foreground mt-2">
-              <a href="/admin/users" className="text-blue-600 hover:underline">
-                Manage Users
-              </a>
-            </p>
-          </CardContent>
-        </Card>
+    return (
+      <div>
+        <h1 className="text-3xl font-bold mb-6">Панель управления</h1>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle>Blog Posts</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{postsCount}</p>
-            <p className="text-sm text-muted-foreground mt-2">
-              <a href="/admin/blog/posts" className="text-blue-600 hover:underline">
-                Manage Posts
-              </a>
-            </p>
-          </CardContent>
-        </Card>
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-sm font-medium">Всего категорий</CardTitle>
+              <Layers className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{categoryCount || 0}</div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle>Categories</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{categoriesCount}</p>
-            <p className="text-sm text-muted-foreground mt-2">
-              <a href="/admin/blog/categories" className="text-blue-600 hover:underline">
-                Manage Categories
-              </a>
-            </p>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-sm font-medium">Страницы раскраски</CardTitle>
+              <FileImage className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{coloringPagesCount || 0}</div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle>Tags</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{tagsCount}</p>
-            <p className="text-sm text-muted-foreground mt-2">
-              <a href="/admin/blog/tags" className="text-blue-600 hover:underline">
-                Manage Tags
-              </a>
-            </p>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-sm font-medium">Всего загрузок</CardTitle>
+              <Download className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalDownloads}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="mt-8">
+          <h2 className="text-xl font-bold mb-4">Отладочные ссылки</h2>
+          <div className="space-y-2">
+            <Link href="/admin/coloring-pages/new">
+              <Button variant="outline">Новая страница раскраски (прямая ссылка)</Button>
+            </Link>
+            <Link href="/admin/debug">
+              <Button variant="outline" className="ml-2">
+                Отладочные маршруты
+              </Button>
+            </Link>
+          </div>
+        </div>
       </div>
-    </div>
-  )
+    )
+  } catch (error) {
+    console.error("Admin dashboard error:", error)
+    return (
+      <div className="p-6">
+        <h1 className="text-3xl font-bold mb-6">Произошла ошибка</h1>
+        <p className="mb-4">Не удалось загрузить панель управления. Пожалуйста, попробуйте позже.</p>
+        <div className="flex gap-4">
+          <Link href="/">
+            <Button>Вернуться на главную</Button>
+          </Link>
+          <Link href="/login">
+            <Button variant="outline">Войти снова</Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
 }

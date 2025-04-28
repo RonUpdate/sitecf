@@ -1,5 +1,1 @@
-// Удаляем любые экспорты метаданных
-export const pageConfig = {
-  title: "Products Management",
-  description: "Manage products",
-}
+export const dynamic = "force-dynamic"

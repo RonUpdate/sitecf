@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 export const dynamic = "force-dynamic"
 
 export default async function TagsDashboardPage() {
-  // Код страницы...
   const supabase = createServerComponentClient({ cookies })
 
   // Получаем все теги

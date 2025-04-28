@@ -20,17 +20,17 @@ export function SearchForm({ className }: { className?: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className={`flex w-full items-center space-x-1 ${className}`}>
+    <form onSubmit={handleSubmit} className={`flex w-full max-w-sm items-center space-x-2 ${className}`}>
       <div className="relative flex-1">
         <Input
           type="search"
-          placeholder="Search..."
+          placeholder="Search coloring pages..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="pr-8 h-8 text-sm bg-muted/50"
+          className="pr-10"
         />
-        <Button type="submit" size="icon" variant="ghost" className="absolute right-0 top-0 h-full w-8 p-0">
-          <Search className="h-3.5 w-3.5 text-muted-foreground" />
+        <Button type="submit" size="icon" className="absolute right-0 top-0 h-full rounded-l-none">
+          <Search className="h-4 w-4" />
           <span className="sr-only">Search</span>
         </Button>
       </div>

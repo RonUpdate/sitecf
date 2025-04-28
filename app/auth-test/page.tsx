@@ -5,7 +5,6 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-// Удаляем импорт generateMetadata или Metadata, если они есть
 
 export default function AuthTestPage() {
   const [user, setUser] = useState<any>(null)

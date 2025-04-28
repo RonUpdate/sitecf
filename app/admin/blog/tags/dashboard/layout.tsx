@@ -1,8 +1,15 @@
-// Проверяем и удаляем любые экспорты метаданных
 import type React from "react"
-// Удаляем импорт generateMetadata или Metadata, если они есть
+import { AdminSidebar } from "@/components/admin-sidebar"
 
-export default function TagsDashboardLayout({ children }: { children: React.ReactNode }) {
-  // Код макета...
-  return <div>{children}</div>
+export default function TagsDashboardLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <div className="flex min-h-screen">
+      <AdminSidebar />
+      <div className="flex-1 overflow-auto">{children}</div>
+    </div>
+  )
 }

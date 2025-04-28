@@ -49,19 +49,12 @@ const fetcher = async (url: string) => {
 
 // Custom SWR hook with authentication handling
 export function useAuthenticatedSWR<T>(url: string | null, config?: SWRConfiguration): SWRResponse<T, Error> {
-  return useSWR<T, Error>(
-    url,
-    url ? fetcher : null, // Only fetch if URL is provided
-    {
-      onError: (error) => {
-        console.error("SWR error:", error)
-      },
-      ...config,
-      // Add reasonable timeouts to prevent infinite loading
-      errorRetryCount: 3,
-      dedupingInterval: 5000,
+  return useSWR<T, Error>(url, fetcher, {
+    onError: (error) => {
+      console.error("SWR error:", error)
     },
-  )
+    ...config,
+  })
 }
 
 // Direct Supabase query hook with SWR
@@ -101,9 +94,6 @@ export function useSupabaseQuery<T>(
         console.error("Supabase query error:", error)
       },
       ...config,
-      // Add reasonable timeouts to prevent infinite loading
-      errorRetryCount: 2,
-      dedupingInterval: 5000,
     },
   )
 }

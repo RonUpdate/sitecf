@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og"
 
 export const runtime = "edge"
 
-export const alt = "Art Market - Beautiful Coloring Pages by Sonya Kern"
+export const alt = "Art Market - Beautiful Coloring Pages for Everyone"
 export const size = {
   width: 1200,
   height: 630,
@@ -43,7 +43,7 @@ export default async function Image() {
           color: "#1f2937",
         }}
       >
-        Beautiful Coloring Pages by Sonya Kern
+        Beautiful Coloring Pages for Everyone
       </div>
     </div>,
     {

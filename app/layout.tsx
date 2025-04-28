@@ -1,47 +1,54 @@
 import type React from "react"
+import "./globals.css"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import { NotificationProvider } from "@/components/notification-provider" // Import NotificationProvider
 
-const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-  preload: true,
-})
+const inter = Inter({ subsets: ["latin"] })
 
-// Используем только статические метаданные
 export const metadata: Metadata = {
-  title: "Art Market - Premium Coloring Pages",
-  description: "Discover high-quality coloring pages for all ages",
-  manifest: "/manifest.json",
+  title: "Art Market - Beautiful Coloring Pages for Everyone",
+  description: "Discover a world of creativity with our premium coloring pages from Creative Factory",
+  metadataBase: new URL("https://www.pinminpro.online"),
   icons: {
-    icon: "https://uenczyfmsqiafcjrlial.supabase.co/storage/v1/object/public/favicons//watercolor-sun-transparent.ico",
-    shortcut:
-      "https://uenczyfmsqiafcjrlial.supabase.co/storage/v1/object/public/favicons//watercolor-sun-transparent.ico",
-    apple: "https://uenczyfmsqiafcjrlial.supabase.co/storage/v1/object/public/favicons//watercolor-sun-transparent.ico",
+    icon: [
+      { url: "/favicon.ico", sizes: "32x32" },
+      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+  manifest: "/manifest.json",
+  openGraph: {
+    title: "Art Market - Beautiful Coloring Pages for Everyone",
+    description: "Discover a world of creativity with our premium coloring pages from Creative Factory",
+    url: "https://www.pinminpro.online",
+    siteName: "Art Market",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Art Market - Beautiful Coloring Pages for Everyone",
+    description: "Discover a world of creativity with our premium coloring pages from Creative Factory",
   },
     generator: 'v0.dev'
 }
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#9333ea" />
       </head>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <NotificationProvider>
-            {" "}
-            {/* Wrap children with NotificationProvider */}
-            {children}
-          </NotificationProvider>
+          {children}
         </ThemeProvider>
       </body>
     </html>

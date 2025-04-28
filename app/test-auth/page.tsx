@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-// Удаляем импорт generateMetadata или Metadata, если они есть
 
 export default function TestAuthPage() {
   const [user, setUser] = useState<any>(null)

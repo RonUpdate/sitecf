@@ -13,7 +13,6 @@ import { getSupabaseClient } from "@/lib/supabase-client"
 import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft, Upload } from "lucide-react"
 import Link from "next/link"
-import { generateSlug } from "@/lib/transliteration"
 
 type Category = {
   id: string
@@ -53,16 +52,15 @@ export function CategoryForm({ category }: { category?: Category }) {
     reader.readAsDataURL(file)
   }
 
-  // Remove this function:
-  // const generateSlug = (text: string) => {
-  //   return text
-  //     .toString()
-  //     .toLowerCase()
-  //     .trim()
-  //     .replace(/\s+/g, "-") // Replace spaces with -
-  //     .replace(/[^\w-]+/g, "") // Remove all non-word chars
-  //     .replace(/--+/g, "-") // Replace multiple - with single -
-  // }
+  const generateSlug = (text: string) => {
+    return text
+      .toString()
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "-") // Replace spaces with -
+      .replace(/[^\w-]+/g, "") // Remove all non-word chars
+      .replace(/--+/g, "-") // Replace multiple - with single -
+  }
 
   // Replace the existing handleNameChange function with this improved version
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import Link from "next/link"
 import logger from "@/lib/logger"
 
-export default async function CheckRlsPage() {
+export default async function CheckRLSPage() {
   const supabase = await createServerSupabaseClient()
 
   // Получаем список всех таблиц с информацией о RLS

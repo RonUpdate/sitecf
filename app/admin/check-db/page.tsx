@@ -6,11 +6,11 @@ import type { Database } from "@/types/supabase"
 
 export const dynamic = "force-dynamic"
 
-export default function CheckDbPage() {
+export default async function CheckDbPage() {
   const supabase = createServerComponentClient<Database>({ cookies })
 
   // Проверяем существование таблицы admin_users
-  const { data: tableExists, error: tableError } = supabase
+  const { data: tableExists, error: tableError } = await supabase
     .rpc("check_table_exists", {
       table_name: "admin_users",
     })
@@ -19,14 +19,14 @@ export default function CheckDbPage() {
   // Проверяем сессию
   const {
     data: { session },
-  } = supabase.auth.getSession()
+  } = await supabase.auth.getSession()
 
   // Если таблица существует, проверяем наличие записей
   let adminUsers = null
   let adminUsersError = null
 
   if (tableExists) {
-    const { data, error } = supabase.from("admin_users").select("*")
+    const { data, error } = await supabase.from("admin_users").select("*")
     adminUsers = data
     adminUsersError = error
   }

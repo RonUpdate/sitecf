@@ -3,9 +3,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { fixBlogPostsTagsRLS, checkRLSStatus } from "./actions"
 import logger from "@/lib/logger"
-// Удаляем импорт generateMetadata или Metadata, если они есть
 
-export default async function FixRlsPage() {
+export default async function FixRLSPage() {
   const supabase = await createServerSupabaseClient()
 
   // Проверяем текущий статус RLS для таблицы blog_posts_tags

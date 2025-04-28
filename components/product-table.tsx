@@ -40,7 +40,6 @@ type Product = {
 export function ProductTable({ products }: { products: Product[] }) {
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
-  const [localProducts, setLocalProducts] = useState<Product[]>(products)
   const router = useRouter()
   const supabase = getSupabaseClient()
   const { toast } = useToast()
@@ -54,60 +53,20 @@ export function ProductTable({ products }: { products: Product[] }) {
       const { error } = await supabase.from("products").delete().eq("id", deleteId)
 
       if (error) {
-        // Check for the specific PostgreSQL error about missing RETURN statements
-        if (error.message && error.message.includes("without RETURN")) {
-          console.warn("Database function missing RETURN statement, but deletion may have succeeded:", error.message)
-
-          // Update local state to remove the deleted product
-          setLocalProducts((prev) => prev.filter((product) => product.id !== deleteId))
-
-          toast({
-            title: "Товар удален",
-            description: "Товар был успешно удален из системы.",
-            variant: "default",
-          })
-        } else {
-          throw error
-        }
-      } else {
-        // Update local state to remove the deleted product
-        setLocalProducts((prev) => prev.filter((product) => product.id !== deleteId))
-
-        toast({
-          title: "Товар удален",
-          description: "Товар был успешно удален из системы.",
-          variant: "default",
-        })
+        throw error
       }
 
-      // Show success notification
-      const successToast = document.createElement("div")
-      successToast.className =
-        "fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50 flex items-center shadow-lg"
-      successToast.innerHTML = `
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-        </svg>
-        <span><strong>Успешно!</strong> Товар удален.</span>
-      `
-      document.body.appendChild(successToast)
+      toast({
+        title: "Product deleted",
+        description: "The product has been successfully deleted.",
+      })
 
-      // Remove the notification after 3 seconds
-      setTimeout(() => {
-        if (document.body.contains(successToast)) {
-          document.body.removeChild(successToast)
-        }
-      }, 3000)
-
-      // Refresh the page after a short delay to show the notification
-      setTimeout(() => {
-        router.refresh()
-      }, 500)
+      router.refresh()
     } catch (error) {
       console.error("Error deleting product:", error)
       toast({
-        title: "Ошибка",
-        description: "Не удалось удалить товар. Пожалуйста, попробуйте снова.",
+        title: "Error",
+        description: "Failed to delete the product. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -117,18 +76,18 @@ export function ProductTable({ products }: { products: Product[] }) {
   }
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("ru-RU", {
+    return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "RUB",
+      currency: "USD",
     }).format(price)
   }
 
-  if (localProducts.length === 0) {
+  if (products.length === 0) {
     return (
       <div className="text-center py-12 border rounded-lg">
-        <p className="text-gray-500 dark:text-gray-400 mb-4">Товары не найдены</p>
+        <p className="text-gray-500 dark:text-gray-400 mb-4">No products found</p>
         <Link href="/admin/products/new">
-          <Button>Добавить первый товар</Button>
+          <Button>Add your first product</Button>
         </Link>
       </div>
     )
@@ -140,17 +99,17 @@ export function ProductTable({ products }: { products: Product[] }) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[80px]">Изображение</TableHead>
-              <TableHead>Название</TableHead>
-              <TableHead>Цена</TableHead>
-              <TableHead className="hidden md:table-cell">Категория</TableHead>
-              <TableHead className="hidden md:table-cell">Наличие</TableHead>
-              <TableHead className="hidden md:table-cell">Статус</TableHead>
-              <TableHead className="w-[100px] text-right">Действия</TableHead>
+              <TableHead className="w-[80px]">Image</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Price</TableHead>
+              <TableHead className="hidden md:table-cell">Category</TableHead>
+              <TableHead className="hidden md:table-cell">Stock</TableHead>
+              <TableHead className="hidden md:table-cell">Featured</TableHead>
+              <TableHead className="w-[100px] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {localProducts.map((product) => (
+            {products.map((product) => (
               <TableRow key={product.id}>
                 <TableCell>
                   <div className="relative h-10 w-10 rounded overflow-hidden">
@@ -164,17 +123,17 @@ export function ProductTable({ products }: { products: Product[] }) {
                 </TableCell>
                 <TableCell className="font-medium">{product.name}</TableCell>
                 <TableCell>{formatPrice(product.price)}</TableCell>
-                <TableCell className="hidden md:table-cell">{product.categories?.name || "Без категории"}</TableCell>
+                <TableCell className="hidden md:table-cell">{product.categories?.name || "Uncategorized"}</TableCell>
                 <TableCell className="hidden md:table-cell">
                   <Badge variant={product.stock_quantity > 0 ? "outline" : "destructive"}>
-                    {product.stock_quantity > 0 ? `${product.stock_quantity} шт.` : "Нет в наличии"}
+                    {product.stock_quantity > 0 ? `${product.stock_quantity} in stock` : "Out of stock"}
                   </Badge>
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
                   {product.is_featured ? (
-                    <Badge variant="default">Рекомендуемый</Badge>
+                    <Badge variant="default">Featured</Badge>
                   ) : (
-                    <Badge variant="outline">Обычный</Badge>
+                    <Badge variant="outline">Standard</Badge>
                   )}
                 </TableCell>
                 <TableCell className="text-right">
@@ -182,7 +141,7 @@ export function ProductTable({ products }: { products: Product[] }) {
                     <Link href={`/admin/products/${product.id}`}>
                       <Button size="icon" variant="ghost">
                         <Edit className="h-4 w-4" />
-                        <span className="sr-only">Редактировать</span>
+                        <span className="sr-only">Edit</span>
                       </Button>
                     </Link>
                     <Button
@@ -192,7 +151,7 @@ export function ProductTable({ products }: { products: Product[] }) {
                       onClick={() => setDeleteId(product.id)}
                     >
                       <Trash2 className="h-4 w-4" />
-                      <span className="sr-only">Удалить</span>
+                      <span className="sr-only">Delete</span>
                     </Button>
                   </div>
                 </TableCell>
@@ -205,13 +164,15 @@ export function ProductTable({ products }: { products: Product[] }) {
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Вы уверены?</AlertDialogTitle>
-            <AlertDialogDescription>Это действие нельзя отменить. Товар будет удален навсегда.</AlertDialogDescription>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the product.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600" disabled={isDeleting}>
-              {isDeleting ? "Удаление..." : "Удалить"}
+              {isDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

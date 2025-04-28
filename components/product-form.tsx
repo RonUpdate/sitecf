@@ -16,8 +16,6 @@ import { getSupabaseClient } from "@/lib/supabase-client"
 import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft, Upload } from "lucide-react"
 import Link from "next/link"
-import { generateSlug } from "@/lib/transliteration"
-import { revalidatePath } from "next/cache"
 
 type Category = {
   id: string
@@ -30,11 +28,10 @@ type Product = {
   description: string
   price: number
   image_url: string
+  category_id: string
   slug: string
   stock_quantity: number
   is_featured: boolean
-  category_id: string
-  created_at: string
 }
 
 export function ProductForm({ product }: { product?: Product }) {
@@ -98,6 +95,17 @@ export function ProductForm({ product }: { product?: Product }) {
     reader.readAsDataURL(file)
   }
 
+  const generateSlug = (text: string) => {
+    return text
+      .toString()
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "-") // Replace spaces with -
+      .replace(/[^\w-]+/g, "") // Remove all non-word chars
+      .replace(/--+/g, "-") // Replace multiple - with single -
+  }
+
+  // Replace the existing handleNameChange function with this improved version
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value
     setName(newName)
@@ -109,11 +117,13 @@ export function ProductForm({ product }: { product?: Product }) {
     }
   }
 
+  // Add a new function to handle slug changes
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSlugManuallyEdited(true)
     setSlug(e.target.value)
   }
 
+  // Update the Generate button click handler
   const regenerateSlug = () => {
     setSlug(generateSlug(name))
     setSlugManuallyEdited(true)
@@ -149,9 +159,9 @@ export function ProductForm({ product }: { product?: Product }) {
       const productData = {
         name,
         description,
-        price: price ? Number.parseFloat(price) : 0,
+        price: Number.parseFloat(price),
         slug,
-        stock_quantity: stockQuantity ? Number.parseInt(stockQuantity) : 0,
+        stock_quantity: Number.parseInt(stockQuantity),
         is_featured: isFeatured,
         category_id: categoryId || null,
         image_url: finalImageUrl,
@@ -178,7 +188,6 @@ export function ProductForm({ product }: { product?: Product }) {
         })
       }
 
-      revalidatePath("/admin/products")
       router.push("/admin/products")
       router.refresh()
     } catch (error) {
@@ -237,6 +246,7 @@ export function ProductForm({ product }: { product?: Product }) {
                     min="0"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
+                    required
                   />
                 </div>
 
@@ -248,6 +258,7 @@ export function ProductForm({ product }: { product?: Product }) {
                     min="0"
                     value={stockQuantity}
                     onChange={(e) => setStockQuantity(e.target.value)}
+                    required
                   />
                 </div>
 
